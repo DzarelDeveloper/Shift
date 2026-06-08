@@ -249,7 +249,7 @@ export default function Dashboard({
     }
   }, [activeTab]);
 
-  const fetchInstalledApps = async () => {
+  async function fetchInstalledApps() {
     console.log(
       '=== fetchInstalledApps CALLED! === ' + new Date().toISOString()
     );
@@ -271,7 +271,7 @@ export default function Dashboard({
     } finally {
       setAppsLoading(false);
     }
-  };
+  }
 
   // Selected workspace in detailed workspaces configurations view
   const [selectedExportWorkspace, setSelectedExportWorkspace] =
