@@ -23,6 +23,7 @@ import { useTheme } from './hooks/useTheme';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import Dashboard from './components/Dashboard';
 import OnboardingWizard from './components/OnboardingWizard';
+import UpdateWizard from './components/UpdateWizard';
 import LauncherPanel from './components/LauncherPanel';
 import { LaunchEnvironmentPreviewModal } from './components/LaunchEnvironmentPreviewModal';
 import { ExecutionOverlay } from './components/ExecutionOverlay';
@@ -101,9 +102,36 @@ export default function App() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isLauncherOpen, setIsLauncherOpen] = useState(false);
   const [apps, setApps] = useState<InstalledApp[]>([]);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => {
-    return localStorage.getItem('shift_onboarding_completed') === 'true';
-  });
+
+  const [wizardState, setWizardState] = useState<'loading' | 'onboarding' | 'update' | 'none'>('loading');
+  const [currentVersion, setCurrentVersion] = useState('0.5.2');
+
+  useEffect(() => {
+    async function initWizardState() {
+      let version = '0.5.2';
+      try {
+        if (typeof window !== 'undefined' && '__TAURI__' in window) {
+          const { getVersion } = await import('@tauri-apps/api/app');
+          version = await getVersion();
+        }
+      } catch (e) {
+        console.error('Failed to get app version', e);
+      }
+      setCurrentVersion(version);
+
+      const savedVersion = localStorage.getItem('shift_last_version');
+      const hasCompletedOnboarding = localStorage.getItem('shift_onboarding_completed') === 'true';
+
+      if (!hasCompletedOnboarding) {
+        setWizardState('onboarding');
+      } else if (savedVersion !== version) {
+        setWizardState('update');
+      } else {
+        setWizardState('none');
+      }
+    }
+    initWizardState();
+  }, []);
 
   const [previewingWorkspace, setPreviewingWorkspace] =
     useState<Workspace | null>(null);
@@ -207,21 +235,31 @@ export default function App() {
   );
 
   const handleOnboardingComplete = useCallback(
-    (_config: {
+    (config: {
       minimizeToTray: boolean;
       launchAtStartup: boolean;
       firstWorkspace: string;
     }) => {
+      setMinimizeToTray(config.minimizeToTray);
+      setLaunchAtStartup(config.launchAtStartup);
       localStorage.setItem('shift_onboarding_completed', 'true');
-      setHasCompletedOnboarding(true);
+      localStorage.setItem('shift_last_version', currentVersion);
+      setWizardState('none');
       triggerToast(
         'Installation Complete',
         'Welcome to Shift! Create your first workspace.',
         'success'
       );
+      window.dispatchEvent(new window.CustomEvent('switch-tab', { detail: 'home' }));
     },
-    [triggerToast]
+    [triggerToast, setMinimizeToTray, setLaunchAtStartup, currentVersion]
   );
+
+  const handleUpdateComplete = useCallback(() => {
+    localStorage.setItem('shift_last_version', currentVersion);
+    setWizardState('none');
+    triggerToast('Update Complete', `Shift has been updated to v${currentVersion}`, 'success');
+  }, [currentVersion, triggerToast]);
 
   useEffect(() => {
     if (!previewingWorkspace) return;
@@ -332,6 +370,16 @@ export default function App() {
           workspaces={workspaces}
           apps={apps}
           onLaunch={handleLaunchItem}
+          onOpenDashboard={() => {
+            setIsLauncherOpen(false);
+            setIsMinimized(false);
+            window.dispatchEvent(new window.CustomEvent('switch-tab', { detail: 'home' }));
+          }}
+          onOpenSettings={() => {
+            setIsLauncherOpen(false);
+            setIsMinimized(false);
+            window.dispatchEvent(new window.CustomEvent('switch-tab', { detail: 'settings' }));
+          }}
         />
 
         <LaunchEnvironmentPreviewModal
@@ -363,8 +411,12 @@ export default function App() {
           onClose={() => setNotification(null)}
         />
 
-        {!hasCompletedOnboarding && (
+        {wizardState === 'onboarding' && (
           <OnboardingWizard onComplete={handleOnboardingComplete} />
+        )}
+
+        {wizardState === 'update' && (
+          <UpdateWizard version={currentVersion} onComplete={handleUpdateComplete} />
         )}
       </div>
     </AppContext.Provider>

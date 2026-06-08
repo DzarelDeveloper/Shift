@@ -42,7 +42,7 @@ export default function OnboardingWizard({
     'coding' | 'design' | 'study' | 'cyber' | 'custom'
   >('coding');
 
-  const totalSteps = 6;
+  const totalSteps = 5;
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -51,7 +51,7 @@ export default function OnboardingWizard({
       onComplete({
         minimizeToTray,
         launchAtStartup,
-        firstWorkspace: selectedWorkspaceType,
+        firstWorkspace: 'custom',
       });
     }
   };
@@ -370,105 +370,6 @@ export default function OnboardingWizard({
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                className='space-y-4'
-              >
-                <div className='space-y-1 text-center sm:text-left'>
-                  <span className='text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest block font-sans'>
-                    Starter Configuration
-                  </span>
-                  <h2 className='text-xl font-bold text-neutral-900 dark:text-white tracking-tight'>
-                    Create Your First Workspace
-                  </h2>
-                  <p className='text-xs text-zinc-600 dark:text-zinc-400 leading-normal'>
-                    Select a template to pre-configure your first automated
-                    layout:
-                  </p>
-                </div>
-
-                <div className='grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1'>
-                  {[
-                    {
-                      id: 'coding',
-                      label: 'Coding',
-                      desc: 'VS Code, Terminal, GitHub docs',
-                      icon: Code,
-                      color: 'text-blue-400 border-blue-500/20',
-                    },
-                    {
-                      id: 'design',
-                      label: 'Design',
-                      desc: 'Figma, Assets drive folders, color sheets',
-                      icon: Brush,
-                      color: 'text-pink-400 border-pink-500/20',
-                    },
-                    {
-                      id: 'study',
-                      label: 'Study',
-                      desc: 'Browser courses, Notion, research folders',
-                      icon: BookOpen,
-                      color: 'text-emerald-400 border-emerald-500/20',
-                    },
-                    {
-                      id: 'cyber',
-                      label: 'Cybersecurity',
-                      desc: 'Wireshark, Kali tools, documentation files',
-                      icon: ShieldAlert,
-                      color: 'text-red-400 border-red-500/20',
-                    },
-                    {
-                      id: 'custom',
-                      label: 'Custom Setup',
-                      desc: 'Construct a blank slate profile',
-                      icon: Sliders,
-                      color: 'text-amber-400 border-amber-500/20',
-                    },
-                  ].map((preset) => {
-                    const presetIcon = React.createElement(preset.icon, {
-                      className: `w-4 h-4 ${preset.color}`,
-                    });
-                    const isSelected = selectedWorkspaceType === preset.id;
-                    return (
-                      <button
-                        key={preset.id}
-                        type='button'
-                        onClick={() => setSelectedWorkspaceType(preset.id)}
-                        className={`p-3 rounded-lg border text-left flex flex-col justify-between h-24 transition-all ${
-                          isSelected
-                            ? 'bg-zinc-100 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-neutral-900 dark:text-white'
-                            : 'bg-white dark:bg-zinc-950 border-zinc-300 dark:border-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-800'
-                        }`}
-                      >
-                        <div className='flex items-center justify-between w-full'>
-                          <span className='p-1 rounded bg-zinc-100 dark:bg-zinc-900'>
-                            {presetIcon}
-                          </span>
-                          {isSelected && (
-                            <span className='w-4 h-4 rounded-full bg-neutral-900 dark:bg-white flex items-center justify-center'>
-                              <Check className='w-2.5 h-2.5 text-white dark:text-zinc-950 font-bold' />
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <span className='text-xs font-bold block'>
-                            {preset.label}
-                          </span>
-                          <span className='text-[9px] text-zinc-500 block leading-tight truncate-two-lines mt-0.5'>
-                            {preset.desc}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-
-            {step === 6 && (
-              <motion.div
-                key='step6'
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
                 className='space-y-6 text-center'
               >
                 <div className='mx-auto w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400'>
@@ -529,9 +430,9 @@ export default function OnboardingWizard({
             className='px-5 py-1.5 bg-accent hover:opacity-90 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition-all shadow-sm cursor-pointer'
           >
             <span>
-              {step === 5
+              {step === 4
                 ? 'Finish Setup'
-                : step === 6
+                : step === 5
                   ? 'Open Dashboard'
                   : 'Continue'}
             </span>

@@ -30,6 +30,8 @@ interface LauncherPanelProps {
   workspaces: Workspace[];
   apps: InstalledApp[];
   onLaunch: (item: LauncherItem) => void;
+  onOpenDashboard: () => void;
+  onOpenSettings: () => void;
 }
 
 const getModeIcon = (modeId: string) => {
@@ -57,6 +59,8 @@ export default function LauncherPanel({
   workspaces,
   apps,
   onLaunch,
+  onOpenDashboard,
+  onOpenSettings,
 }: LauncherPanelProps) {
   const {
     query,
@@ -337,7 +341,25 @@ export default function LauncherPanel({
               style={{ color: 'var(--text-color)', opacity: 0.6 }}
             >
               <Command className='w-6 h-6 mb-2' style={{ opacity: 0.3 }} />
-              <p className='text-xs font-semibold'>No items found</p>
+              <p className='text-xs font-semibold mb-3'>No items found</p>
+              <button
+                onClick={onOpenDashboard}
+                className='px-4 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 transition-opacity'
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  borderColor: 'var(--border-color)',
+                  color: 'var(--text-color)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.8';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                }}
+              >
+                <AppWindow className='w-3 h-3' />
+                <span>Open Dashboard</span>
+              </button>
             </div>
           )}
         </div>
@@ -386,13 +408,22 @@ export default function LauncherPanel({
               launch
             </span>
           </div>
-          <div
-            className='flex items-center gap-1 font-medium font-mono'
-            style={{ color: 'var(--text-color)', opacity: 0.5 }}
+          <button
+            onClick={onOpenSettings}
+            className='flex items-center gap-1.5 font-medium font-mono px-2 py-1 rounded transition-colors cursor-pointer'
+            style={{ color: 'var(--text-color)', opacity: 0.6 }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--card-bg) 100%, transparent)';
+              e.currentTarget.style.opacity = '1';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.opacity = '0.6';
+            }}
           >
-            <Command className='w-3 h-3' />
-            <span>Shift Launcher</span>
-          </div>
+            <Settings className='w-3 h-3' />
+            <span>Settings</span>
+          </button>
         </div>
       </motion.div>
     </div>

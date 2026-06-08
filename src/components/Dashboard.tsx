@@ -233,6 +233,12 @@ export default function Dashboard({
         );
         // No fallback, just set empty state
       });
+
+    const handleSwitchTab = (e: any) => {
+      setActiveTab(e.detail);
+    };
+    window.addEventListener('switch-tab', handleSwitchTab);
+    return () => window.removeEventListener('switch-tab', handleSwitchTab);
   }, []);
 
   // Fetch aplikasi dari API ketika tab Applications dibuka (if not already fetched)
