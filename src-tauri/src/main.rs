@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::{Manager, AppHandle, Emitter, WindowEvent};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+#[cfg(target_os = "linux")]
 use freedesktop_icons::lookup;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -30,7 +31,7 @@ struct AppState {
 
 #[tauri::command]
 fn get_installed_apps() -> Vec<AppInfo> {
-    let mut apps = Vec::new();
+    let mut apps: Vec<AppInfo> = Vec::new();
     
     #[cfg(target_os = "linux")]
     {
