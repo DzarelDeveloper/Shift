@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --accent-color: #6366f1;
+  --dark-mode: selector .dark;
+}
+
+/* Custom CSS variables for theme */
+:root {
+  --accent-color: #6366f1; /* Default indigo */
+  --bg-color: #ffffff;
+  --text-color: #0f172a;
+  --card-bg: #f9fafb;
+  --border-color: #e2e8f0;
+}
+
+/* Dark mode */
+.dark {
+  --bg-color: #09090b;
+  --text-color: #e5e7eb;
+  --card-bg: #18181b;
+  --border-color: #27272a;
+}
+
+/* Manual background colors */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Hide scrollbars completely */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  display: none;
+}
+
+html, body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Smooth glassmorphic reflections */
+.glass-panel {
+  backdrop-filter: blur(12px) saturate(140%);
+}
+
+/* Custom select styling for consistency across platforms */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717a' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 36px !important;
+}
+
+/* Custom accent color utilities */
+@layer utilities {
+  .bg-accent {
+    background-color: var(--accent-color);
+  }
+  .bg-accent\/90 {
+    background-color: color-mix(in srgb, var(--accent-color) 90%, transparent);
+  }
+  .bg-accent\/80 {
+    background-color: color-mix(in srgb, var(--accent-color) 80%, transparent);
+  }
+  .text-accent {
+    color: var(--accent-color);
+  }
+  .border-accent {
+    border-color: var(--accent-color);
+  }
+}
+
+/* Placeholder color */
+::placeholder {
+  color: color-mix(in srgb, var(--text-color) 50%, transparent);
+}
+

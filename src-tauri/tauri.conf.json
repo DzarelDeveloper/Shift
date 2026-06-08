@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "productName": "Shift",
+  "version": "0.5.0",
+  "identifier": "com.dzarel.shift",
+  "plugins": {
+    "shell": {
+      "open": true
+    },
+    "globalShortcut": {},
+    "updater": {
+      "endpoints": [
+        "https://github.com/DzarelDeveloper/Shift/releases/latest/download/latest.json"
+      ],
+      "pubkey": "UPDATE_PUBKEY",
+      "windows": {
+        "installMode": "nsis"
+      },
+      "macOS": {
+        "installMode": "bundle"
+      }
+    }
+  },
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:3000",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Shift",
+        "width": 1280,
+        "height": 720,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: https:; style-src 'self' 'unsafe-inline';"
+    },
+    "trayIcon": {
+        "iconPath": "icons/32x32.png"
+      }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png"
+    ]
+  }
+}
