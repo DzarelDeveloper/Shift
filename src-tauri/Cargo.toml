@@ -1,6 +1,6 @@
 [package]
 name = "shift"
-version = "0.5.5"
+version = "0.5.7"
 description = "Restore your workflow in seconds."
 authors = ["Muhamad Dzarel Alghifari"]
 license = "MIT"
@@ -30,6 +30,7 @@ sysinfo = "0.35"
 tauri-plugin-updater = "2.10.1"
 shlex = "2.0.1"
 walkdir = "2.5.0"
+tauri-plugin-single-instance = { version = "2.4.2", features = ["deep-link"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 freedesktop-icons = "0.4"

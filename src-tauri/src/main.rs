@@ -10,6 +10,7 @@ use freedesktop_icons::lookup;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct AppInfo {
+    id: String,
     name: String,
     path: String,
     icon: Option<String>,
@@ -54,10 +55,12 @@ fn get_default_dashboard_shortcut() -> &'static str {
 
 #[tauri::command]
 fn get_installed_apps() -> Vec<AppInfo> {
+    eprintln!("[DEBUG] get_installed_apps() CALLED!");
     let mut apps: Vec<AppInfo> = Vec::new();
     
     #[cfg(target_os = "linux")]
     {
+        eprintln!("[DEBUG] Linux platform detected, starting scan...");
         use std::fs;
         use std::path::Path;
         use std::collections::HashMap;
@@ -140,15 +143,26 @@ fn get_installed_apps() -> Vec<AppInfo> {
             result
         }
         
-        fn scan_dir(dir: &Path, apps: &mut Vec<AppInfo>, cache: &mut HashMap<String, Option<String>>) {
+        let mut scanned_count = 0;
+        let mut parsed_count = 0;
+        let mut rejected_count = 0;
+        let mut skipped_count = 0;
+        
+        fn scan_dir(dir: &Path, apps: &mut Vec<AppInfo>, cache: &mut HashMap<String, Option<String>>,
+                     scanned_count: &mut u32, parsed_count: &mut u32, rejected_count: &mut u32, skipped_count: &mut u32) {
+            eprintln!("[DEBUG] Scanning directory: {:?}", dir);
             if !dir.exists() {
+                eprintln!("[DEBUG] Directory {:?} does NOT exist!", dir);
                 return;
             }
             match fs::read_dir(dir) {
                 Ok(entries) => {
                     for entry in entries.flatten() {
+                        *scanned_count +=1;
                         let entry_path = entry.path();
+                        eprintln!("[DEBUG] Found entry: {:?}", entry_path);
                         if entry_path.is_file() && entry_path.extension().and_then(|e| e.to_str()) == Some("desktop") {
+                            eprintln!("[DEBUG] Found .desktop file: {:?}", entry_path);
                             match fs::read_to_string(&entry_path) {
                                 Ok(content) => {
                                     let mut name = String::new();
@@ -165,6 +179,7 @@ fn get_installed_apps() -> Vec<AppInfo> {
                                         } else if in_desktop_entry {
                                             if line.starts_with("Name=") {
                                                 name = line[5..].to_string();
+                                                eprintln!("[DEBUG] Found Name: {}", name);
                                             } else if line.starts_with("Exec=") {
                                                 let raw_exec = &line[5..];
                                                 let mut cleaned_exec = raw_exec.to_string();
@@ -176,27 +191,44 @@ fn get_installed_apps() -> Vec<AppInfo> {
                                                     cleaned_exec = cleaned_exec.replace(placeholder, "");
                                                 }
                                                 exec = cleaned_exec.trim().to_string();
+                                                eprintln!("[DEBUG] Found Exec: {}", exec);
                                             } else if line.starts_with("Icon=") {
                                                 let icon_name = line[5..].to_string();
                                                 icon = resolve_icon(&icon_name, cache);
+                                                eprintln!("[DEBUG] Found Icon: {}", icon_name);
                                             } else if line.eq_ignore_ascii_case("NoDisplay=true") {
                                                 no_display = true;
+                                                eprintln!("[DEBUG] NoDisplay=true: skipping this desktop file");
                                             }
                                         }
                                     }
                                     if !name.is_empty() && !exec.is_empty() && !no_display {
                                         if apps.iter().any(|a| a.name == name) {
+                                            *skipped_count +=1;
+                                            eprintln!("[DEBUG] App with name '{}' already exists, skipping", name);
                                             continue;
                                         }
-                                        apps.push(AppInfo { name, path: exec, icon });
+                                        let id = format!("{}-{}", name.replace(' ', "_"), exec.replace(' ', "_"));
+                                        eprintln!("[DEBUG] Adding app to list: id={}, name={}, path={}", id, name, exec);
+                                        apps.push(AppInfo { id, name, path: exec, icon });
+                                        *parsed_count +=1;
+                                    } else {
+                                        *rejected_count +=1;
+                                        eprintln!("[DEBUG] Rejected desktop file: name empty? {}, exec empty? {}, no_display? {}",
+                                                  name.is_empty(), exec.is_empty(), no_display);
                                     }
                                 }
-                                Err(_) => {}
+                                Err(e) => {
+                                    *rejected_count +=1;
+                                    eprintln!("[DEBUG] Failed to read desktop file {:?}: {:?}", entry_path, e);
+                                }
                             }
                         }
                     }
                 }
-                Err(_) => {}
+                Err(e) => {
+                    eprintln!("[DEBUG] Failed to read directory {:?}: {:?}", dir, e);
+                }
             }
         }
 
@@ -211,17 +243,21 @@ fn get_installed_apps() -> Vec<AppInfo> {
             &format!("{}/.local/share/applications", std::env::var("HOME").unwrap_or_default()),
         ];
         for dir in desktop_dirs {
-            scan_dir(Path::new(dir), &mut apps, &mut cache);
+            scan_dir(Path::new(dir), &mut apps, &mut cache, &mut scanned_count, &mut parsed_count, &mut rejected_count, &mut skipped_count);
         }
 
         // Simpan kembali cache
         let mut cache_lock = ICON_CACHE.lock().unwrap();
         *cache_lock = Some(cache);
         drop(cache_lock);
+
+        eprintln!("[DEBUG] Linux scan summary: scanned={}, parsed={}, rejected={}, skipped={}, total apps={}",
+                  scanned_count, parsed_count, rejected_count, skipped_count, apps.len());
     }
 
     #[cfg(target_os = "windows")]
     {
+        eprintln!("[DEBUG] Windows platform detected, starting scan...");
         use std::path::Path;
         use walkdir::WalkDir;
 
@@ -230,31 +266,47 @@ fn get_installed_apps() -> Vec<AppInfo> {
             format!("{}\\Microsoft\\Windows\\Start Menu\\Programs", std::env::var("APPDATA").unwrap_or_else(|_| "".to_string())),
         ];
 
+        let mut scanned_count =0;
+        let mut parsed_count =0;
+        let mut skipped_count =0;
+
         for dir in start_menu_dirs.iter() {
+            eprintln!("[DEBUG] Scanning Windows directory: {:?}", dir);
             let path = Path::new(dir);
             if !path.exists() {
+                eprintln!("[DEBUG] Windows directory {:?} does NOT exist!", dir);
                 continue;
             }
             for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
+                scanned_count +=1;
                 let entry_path = entry.path();
                 if entry_path.is_file() && entry_path.extension().and_then(|e| e.to_str()) == Some("lnk") {
+                    eprintln!("[DEBUG] Found Windows .lnk file: {:?}", entry_path);
                     if let Some(file_stem) = entry_path.file_stem().and_then(|n| n.to_str()) {
                         if apps.iter().any(|a| a.name == file_stem) {
+                            skipped_count +=1;
                             continue;
                         }
+                        let path_str = entry_path.to_string_lossy().to_string();
+                        let id = format!("{}-{}", file_stem.replace(' ', "_"), path_str.replace(' ', "_"));
+                        eprintln!("[DEBUG] Adding Windows app to list: id={}, name={}, path={}", id, file_stem, path_str);
                         apps.push(AppInfo {
+                            id,
                             name: file_stem.to_string(),
-                            path: entry_path.to_string_lossy().to_string(),
+                            path: path_str,
                             icon: None, // Icon extraction on Windows requires deeper native API integration
                         });
+                        parsed_count +=1;
                     }
                 }
             }
         }
+        eprintln!("[DEBUG] Windows scan summary: scanned={}, parsed={}, skipped={}, total apps={}", scanned_count, parsed_count, skipped_count, apps.len());
     }
 
     #[cfg(target_os = "macos")]
     {
+        eprintln!("[DEBUG] macOS platform detected, starting scan...");
         use std::path::Path;
         use std::fs;
 
@@ -264,33 +316,52 @@ fn get_installed_apps() -> Vec<AppInfo> {
             &format!("{}/Applications", std::env::var("HOME").unwrap_or_default()),
         ];
 
+        let mut scanned_count=0;
+        let mut parsed_count=0;
+        let mut skipped_count=0;
+
         for dir in app_dirs.iter() {
+            eprintln!("[DEBUG] Scanning macOS directory: {:?}", dir);
             let path = Path::new(dir);
             if !path.exists() {
+                eprintln!("[DEBUG] macOS directory {:?} does NOT exist!", dir);
                 continue;
             }
             if let Ok(entries) = fs::read_dir(path) {
                 for entry in entries.flatten() {
+                    scanned_count +=1;
                     let entry_path = entry.path();
                     if entry_path.is_dir() && entry_path.extension().and_then(|e| e.to_str()) == Some("app") {
+                        eprintln!("[DEBUG] Found macOS .app bundle: {:?}", entry_path);
                         if let Some(file_stem) = entry_path.file_stem().and_then(|n| n.to_str()) {
                             if apps.iter().any(|a| a.name == file_stem) {
+                                skipped_count +=1;
                                 continue;
                             }
+                            let path_str = entry_path.to_string_lossy().to_string();
+                            let id = format!("{}-{}", file_stem.replace(' ', "_"), path_str.replace(' ', "_"));
+                            eprintln!("[DEBUG] Adding macOS app to list: id={}, name={}, path={}", id, file_stem, path_str);
                             apps.push(AppInfo {
+                                id,
                                 name: file_stem.to_string(),
-                                path: entry_path.to_string_lossy().to_string(),
+                                path: path_str,
                                 icon: None,
                             });
+                            parsed_count +=1;
                         }
                     }
                 }
             }
         }
+        eprintln!("[DEBUG] macOS scan summary: scanned={}, parsed={}, skipped={}, total apps={}", scanned_count, parsed_count, skipped_count, apps.len());
     }
     
     apps.sort_by(|a, b| a.name.cmp(&b.name));
     eprintln!("[Apps Indexed] Count: {}", apps.len());
+    for (i, app) in apps.iter().enumerate().take(10) {
+        eprintln!("[DEBUG] App #{}: id={}, name={}, path={}", i+1, app.id, app.name, app.path);
+    }
+    eprintln!("[DEBUG] get_installed_apps() RETURNING {} apps", apps.len());
     apps
 }
 
@@ -455,33 +526,53 @@ fn set_global_shortcut(
 
 fn main() {
     tauri::Builder::default()
+        // ── Single-instance guard ──────────────────────────────────────────────
+        // If a second process is launched while Shift is already running,
+        // kill the second process and focus/restore the existing main window
+        // instead. This prevents duplicate window sets entirely.
+        .plugin(
+            tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+                eprintln!("[Single Instance] Second launch attempt detected – focusing existing window.");
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                }
+            })
+        )
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().with_handler(|app, shortcut, _event| {
             eprintln!("[Shortcut Triggered] {:?}", shortcut);
             let state: tauri::State<AppState> = app.state();
             let launcher_sc = state.launcher_shortcut.lock().unwrap().clone();
             let dashboard_sc = state.dashboard_shortcut.lock().unwrap().clone();
-            
+
             if Some(*shortcut) == launcher_sc {
+                // Toggle the launcher window visibility – never create a new one.
                 if let Some(window) = app.get_webview_window("launcher") {
                     if let Ok(is_visible) = window.is_visible() {
                         if is_visible {
                             let _ = window.hide();
-                            eprintln!("[Launcher Closed]");
+                            eprintln!("[Launcher] Hidden");
                         } else {
                             let _ = window.show();
                             let _ = window.unminimize();
                             let _ = window.set_focus();
-                            eprintln!("[Launcher Opened]");
+                            eprintln!("[Launcher] Shown");
                         }
                     }
+                } else {
+                    eprintln!("[Launcher] ERROR: launcher window not found – it may have been destroyed.");
                 }
             } else if Some(*shortcut) == dashboard_sc {
+                // Focus the existing main window – never create a new one.
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();
                     let _ = window.unminimize();
                     let _ = window.set_focus();
-                    eprintln!("[Dashboard Opened]");
+                    eprintln!("[Dashboard] Focused");
+                } else {
+                    eprintln!("[Dashboard] ERROR: main window not found.");
                 }
             }
         }).build())
@@ -509,10 +600,10 @@ fn main() {
             // Register custom protocol for app icons
             #[cfg(desktop)]
             app.handle().plugin(tauri_plugin_fs::init())?;
-            
+
             let system_info = get_system_info();
             eprintln!("[Shortcut] Platform detected: {}", system_info.platform);
-            
+
             let open_shift = tauri::menu::MenuItemBuilder::with_id("open_shift", "Open Shift")
                 .build(app)?;
             let separator1 = tauri::menu::PredefinedMenuItem::separator(app)?;
@@ -558,11 +649,33 @@ fn main() {
                     }
                 })
                 .build(app)?;
-            let _ = set_global_shortcut(app.handle().clone(), get_default_shortcut().to_string(), app.state());
+
+            // Register shortcuts once at startup from the Rust side.
+            // The frontend (main window only) may call set_global_shortcut to
+            // update the launcher binding when the user changes settings.
+            let _ = set_global_shortcut(
+                app.handle().clone(),
+                get_default_shortcut().to_string(),
+                app.state(),
+            );
+
             Ok(())
         })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
+                let label = window.label();
+
+                if label == "launcher" {
+                    // The launcher window must NEVER be destroyed.
+                    // Always intercept the close and hide it so the shortcut
+                    // handler can always find it via get_webview_window("launcher").
+                    api.prevent_close();
+                    let _ = window.hide();
+                    eprintln!("[Launcher] Close intercepted – hidden instead of destroyed.");
+                    return;
+                }
+
+                // For all other windows ("main"), honour the minimize-to-tray setting.
                 let app_state = window.state::<AppState>();
                 let minimize_to_tray = *app_state.minimize_to_tray.lock().unwrap();
                 if minimize_to_tray {

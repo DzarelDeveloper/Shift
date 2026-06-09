@@ -13,6 +13,12 @@ interface UseGlobalShortcutProps {
     desc: string,
     type?: 'success' | 'info'
   ) => void;
+  /**
+   * When false the hook is a no-op.
+   * Set to true only in the MAIN window so the launcher window never
+   * races to call set_global_shortcut and corrupt the shortcut state.
+   */
+  enabled?: boolean;
 }
 
 export function useGlobalShortcut({
@@ -23,23 +29,30 @@ export function useGlobalShortcut({
   setIsLauncherOpen,
   previewingWorkspace,
   triggerToast,
+  enabled = true,
 }: UseGlobalShortcutProps) {
-  // Register global shortcut and minimize-to-tray in Tauri backend
-  // The Rust handler directly shows/hides the launcher window — no frontend event needed
+  // Register global shortcut and minimize-to-tray in Tauri backend.
+  // ONLY runs when enabled=true (i.e. the main window).
+  // The Rust handler directly shows/hides the launcher window — no frontend
+  // event is emitted; this hook only keeps the stored shortcut key in sync.
   useEffect(() => {
+    if (!enabled) return;
     const isTauriEnv = typeof window !== 'undefined' && '__TAURI__' in window;
     if (isTauriEnv) {
       import('@tauri-apps/api/core')
-        .then((core) => {
-          const { invoke } = core;
-          invoke('set_global_shortcut', { newShortcut: shortcutKey });
-          invoke('set_minimize_to_tray', { value: minimizeToTray });
+        .then(({ invoke }) => {
+          invoke('set_global_shortcut', { newShortcut: shortcutKey }).catch(
+            (e: unknown) => console.error('[Shortcut] set_global_shortcut failed:', e)
+          );
+          invoke('set_minimize_to_tray', { value: minimizeToTray }).catch(
+            (e: unknown) => console.error('[Shortcut] set_minimize_to_tray failed:', e)
+          );
         })
         .catch((e) =>
-          console.error('Failed to initialize global shortcut in Tauri:', e)
+          console.error('[Shortcut] Failed to import Tauri core:', e)
         );
     }
-  }, [shortcutKey, minimizeToTray]);
+  }, [enabled, shortcutKey, minimizeToTray]);
 
   useEffect(() => {
     const handleGlobalShortcut = (e: KeyboardEvent) => {

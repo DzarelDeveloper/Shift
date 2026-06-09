@@ -28,6 +28,8 @@ import { DockToTrayOverlay } from './components/DockToTrayOverlay';
 import { createExportData, parseImportData } from './utils/workspaceUtils';
 import { useWorkspaceLauncher } from './hooks/useWorkspaceLauncher';
 import { useGlobalShortcut } from './hooks/useGlobalShortcut';
+import { useAppInfo } from './hooks/useAppInfo';
+import { APP_CONFIG } from './config/app';
 
 const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
 
@@ -67,14 +69,21 @@ export const useAppContext = () => {
 export default function App() {
   const { theme, setTheme } = useTheme();
 
-  const [windowLabel, setWindowLabel] = useState<string>('main');
+  // null = not yet resolved; avoids running main-only hooks in the launcher window.
+  const [windowLabel, setWindowLabel] = useState<string | null>(null);
   useEffect(() => {
     if (isTauri) {
       import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
         setWindowLabel(getCurrentWindow().label);
       });
+    } else {
+      // In browser dev-mode there is only one "window" – treat as main.
+      setWindowLabel('main');
     }
   }, []);
+
+  const isMainWindow = windowLabel === 'main';
+  const isLauncherWindow = windowLabel === 'launcher';
 
   const { data: workspaces, setData: setWorkspaces, isLoaded: workspacesLoaded } = useDataStore<Workspace[]>(
     'workspaces.json',
@@ -97,56 +106,90 @@ export default function App() {
   const [isLauncherOpen, setIsLauncherOpen] = useState(false);
   const [apps, setApps] = useState<InstalledApp[]>([]);
 
+  // Log whenever apps state updates
+  useEffect(() => {
+    console.log("-----------------------------------------------------------");
+    console.log("📊 Apps STATE UPDATE!");
+    console.log("   📊 apps.length:", apps.length);
+    if (apps.length > 0) {
+      console.log("   📊 First 10 apps in state:");
+      apps.slice(0,10).forEach((app, i) => console.log(`      #${i+1}`, app));
+    }
+    console.log("-----------------------------------------------------------");
+  }, [apps]);
+
+  // Version is read once from Tauri via useAppInfo (single source of truth).
+  const { version: currentVersion } = useAppInfo();
+
   const [wizardState, setWizardState] = useState<
     'loading' | 'onboarding' | 'update' | 'none'
   >('loading');
-  const [currentVersion, setCurrentVersion] = useState('0.5.5');
 
   useEffect(() => {
-    async function initWizardState() {
-      let version = '0.5.4';
-      try {
-        if (typeof window !== 'undefined' && '__TAURI__' in window) {
-          const { getVersion } = await import('@tauri-apps/api/app');
-          version = await getVersion();
-        }
-      } catch (e) {
-        console.error('Failed to get app version', e);
-      }
-      setCurrentVersion(version);
+    if (!currentVersion) return; // wait for Tauri to resolve
+    const savedVersion = localStorage.getItem('shift_last_version');
+    const hasCompletedOnboarding =
+      localStorage.getItem('shift_onboarding_completed') === 'true';
 
-      const savedVersion = localStorage.getItem('shift_last_version');
-      const hasCompletedOnboarding =
-        localStorage.getItem('shift_onboarding_completed') === 'true';
-
-      if (!hasCompletedOnboarding) {
-        setWizardState('onboarding');
-      } else if (savedVersion !== version) {
-        setWizardState('update');
-      } else {
-        setWizardState('none');
-      }
+    if (!hasCompletedOnboarding) {
+      setWizardState('onboarding');
+    } else if (savedVersion !== currentVersion) {
+      setWizardState('update');
+    } else {
+      setWizardState('none');
     }
-    initWizardState();
-  }, []);
+  }, [currentVersion]);
 
   useEffect(() => {
+    console.log("----------------------------------------");
+    console.log("📋 App.tsx: fetchApps useEffect RUNNING!");
+    console.log("   🔹 windowLabel:", windowLabel);
+    console.log("   🔹 isMainWindow:", windowLabel === "main");
+    console.log("   🔹 __TAURI__ in window?", "__TAURI__" in window);
+    console.log("----------------------------------------");
+    
     async function fetchApps() {
+      console.log("🚀 fetchApps() CALLED!");
+      if (windowLabel !== "main") {
+        console.log("❌ Not main window, SKIPPING fetch!");
+        return;
+      }
+      console.log("✅ Main window confirmed, proceeding!");
+      
       if (typeof window !== 'undefined' && '__TAURI__' in window) {
         try {
+          console.log("📞 Calling Tauri's get_installed_apps()...");
           const { invoke } = await import('@tauri-apps/api/core');
-          const installedApps = await invoke('get_installed_apps');
-          setApps(installedApps as InstalledApp[]);
-          console.log(
-            `[Installed Apps Count]: ${((installedApps as InstalledApp[]) || []).length}`
-          );
+          const installedAppsRaw = await invoke('get_installed_apps');
+          console.log("✅ Tauri invoke SUCCESS!");
+          console.log("   📦 Raw data type:", typeof installedAppsRaw);
+          console.log("   📦 Raw data:", installedAppsRaw);
+          
+          const installedApps = installedAppsRaw as InstalledApp[];
+          
+          console.log("🔍 Installed apps type:", typeof installedApps);
+          console.log("🔍 Is Array?", Array.isArray(installedApps));
+          console.log("🔍 Apps length:", installedApps.length);
+          
+          if (Array.isArray(installedApps) && installedApps.length > 0) {
+            console.log("📋 First 10 apps:");
+            installedApps.slice(0, 10).forEach((app, i) => {
+              console.log(`   #${i+1}:`, app);
+            });
+          }
+          
+          console.log("💾 Calling setApps with this data!");
+          setApps(installedApps);
+          
         } catch (e) {
-          console.error('Failed to fetch installed apps', e);
+          console.error("❌ Failed to fetch installed apps! Error:", e);
         }
+      } else {
+        console.log("❌ Not in Tauri environment, SKIPPING fetch!");
       }
     }
     fetchApps();
-  }, []);
+  }, [windowLabel]);
 
   const [previewingWorkspace, setPreviewingWorkspace] =
     useState<Workspace | null>(null);
@@ -176,6 +219,10 @@ export default function App() {
     executeWorkspacePipeline,
   } = useWorkspaceLauncher({ triggerToast });
 
+  // Only the MAIN window registers the global shortcut with the Rust backend.
+  // The launcher window must NOT call set_global_shortcut; doing so would
+  // unregister + re-register the shortcuts in a race condition every time
+  // the launcher window mounts.
   useGlobalShortcut({
     shortcutKey,
     minimizeToTray,
@@ -184,6 +231,7 @@ export default function App() {
     setIsLauncherOpen,
     previewingWorkspace,
     triggerToast,
+    enabled: isMainWindow,
   });
 
   // Auto-hide the launcher window when it loses focus (click outside)
@@ -283,7 +331,7 @@ export default function App() {
       setWizardState('none');
       triggerToast(
         'Installation Complete',
-        'Welcome to Shift! Create your first workspace.',
+        `Welcome to ${APP_CONFIG.name}! Create your first workspace.`,
         'success'
       );
       window.dispatchEvent(
@@ -298,7 +346,7 @@ export default function App() {
     setWizardState('none');
     triggerToast(
       'Update Complete',
-      `Shift has been updated to v${currentVersion}`,
+      `${APP_CONFIG.name} has been updated to v${currentVersion}`,
       'success'
     );
   }, [currentVersion, triggerToast]);
@@ -365,7 +413,14 @@ export default function App() {
     [autoBypassPreview, executeWorkspacePipeline]
   );
 
-  if (windowLabel === 'launcher') {
+  // While we're waiting for the window label to resolve, render nothing.
+  // This prevents the launcher window from flashing the Dashboard UI and,
+  // critically, from running Tauri-backend calls that belong only to main.
+  if (windowLabel === null) {
+    return null;
+  }
+
+  if (isLauncherWindow) {
     return (
       <AppContext.Provider
         value={{

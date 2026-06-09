@@ -1,4 +1,5 @@
 import { Workspace, ShiftExportData } from '../types';
+import { APP_CONFIG } from '../config/app';
 
 export function createExportData(
   workspaces: Workspace[],
@@ -10,7 +11,7 @@ export function createExportData(
   }
 ): string {
   const exportData: ShiftExportData = {
-    version: '0.4.0',
+    version: APP_CONFIG.fallbackVersion,
     exportedAt: new Date().toISOString(),
     workspaces,
     preferences,

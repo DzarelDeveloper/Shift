@@ -69,6 +69,9 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppContext } from '../App';
 import logoUrl from '../assets/logo.png';
+import { VersionBadge } from './VersionBadge';
+import { AppInfoCard } from './AppInfoCard';
+import { useAppInfo } from '../hooks/useAppInfo';
 
 interface DashboardProps {
   workspaces: Workspace[];
@@ -110,6 +113,7 @@ export default function Dashboard({
   const { theme, setTheme, exportWorkspaces, importWorkspaces, apps } =
     useAppContext();
   const [appsLoading] = useState(false);
+  const { version: appVersion } = useAppInfo();
 
   // Simple desktop tabs: "home" | "workspaces" | "applications" | "settings" | "about"
   const [activeTab, setActiveTab] = useState<
@@ -500,20 +504,7 @@ export default function Dashboard({
                 className='w-full h-full object-cover'
               />
             </div>
-            <div>
-              <h2
-                className='text-sm font-bold tracking-tight'
-                style={{ color: 'var(--text-color)' }}
-              >
-                hift
-              </h2>
-              <p
-                className='text-[10px] font-medium font-mono'
-                style={{ color: 'var(--text-color)', opacity: 0.5 }}
-              >
-                v0.5.5
-              </p>
-            </div>
+            <AppInfoCard compact />
           </div>
 
           {/* New Workspace Direct Action */}
@@ -669,12 +660,10 @@ export default function Dashboard({
               'color-mix(in srgb, var(--border-color) 60%, transparent)',
           }}
         >
-          <span
-            className='text-[9px] font-mono block'
+          <VersionBadge
+            className='text-[9px] block'
             style={{ color: 'var(--text-color)', opacity: 0.6 }}
-          >
-            Shift v0.5.5
-          </span>
+          />
         </div>
       </aside>
 
@@ -2852,7 +2841,7 @@ export default function Dashboard({
                         className='font-semibold text-sm'
                         style={{ color: 'var(--text-color)' }}
                       >
-                        0.4.0
+                        {appVersion}
                       </span>
                     </div>
                     <div
@@ -2926,98 +2915,7 @@ export default function Dashboard({
                         'color-mix(in srgb, var(--border-color) 60%, transparent)',
                     }}
                   >
-                    <div>
-                      <h4
-                        className='font-extrabold text-lg'
-                        style={{ color: 'var(--text-color)' }}
-                      >
-                        Shift
-                      </h4>
-                      <p
-                        className='text-[11px] font-mono mt-1'
-                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
-                      >
-                        Version 0.3.0
-                      </p>
-                      <p
-                        className='text-sm mt-2 leading-relaxed'
-                        style={{ color: 'var(--text-color)', opacity: 0.8 }}
-                      >
-                        Restore your workflow in seconds.
-                      </p>
-                    </div>
-
-                    <div
-                      className='pt-3 border-t grid grid-cols-1 sm:grid-cols-3 gap-4 text-[11px]'
-                      style={{
-                        borderColor:
-                          'color-mix(in srgb, var(--border-color) 40%, transparent)',
-                      }}
-                    >
-                      <div
-                        className='p-3 rounded-xl border'
-                        style={{
-                          backgroundColor: 'var(--card-bg)',
-                          borderColor:
-                            'color-mix(in srgb, var(--border-color) 60%, transparent)',
-                        }}
-                      >
-                        <span
-                          className='block font-mono text-[10px] mb-1'
-                          style={{ color: 'var(--text-color)', opacity: 0.6 }}
-                        >
-                          CREATED BY
-                        </span>
-                        <span
-                          className='font-semibold text-sm'
-                          style={{ color: 'var(--text-color)' }}
-                        >
-                          Muhamad Dzarel Alghifari
-                        </span>
-                      </div>
-                      <div
-                        className='p-3 rounded-xl border'
-                        style={{
-                          backgroundColor: 'var(--card-bg)',
-                          borderColor:
-                            'color-mix(in srgb, var(--border-color) 60%, transparent)',
-                        }}
-                      >
-                        <span
-                          className='block font-mono text-[10px] mb-1'
-                          style={{ color: 'var(--text-color)', opacity: 0.6 }}
-                        >
-                          PLATFORM
-                        </span>
-                        <span
-                          className='text-sm'
-                          style={{ color: 'var(--text-color)' }}
-                        >
-                          {systemInfo?.platform || 'Unknown'}
-                        </span>
-                      </div>
-                      <div
-                        className='p-3 rounded-xl border'
-                        style={{
-                          backgroundColor: 'var(--card-bg)',
-                          borderColor:
-                            'color-mix(in srgb, var(--border-color) 60%, transparent)',
-                        }}
-                      >
-                        <span
-                          className='block font-mono text-[10px] mb-1'
-                          style={{ color: 'var(--text-color)', opacity: 0.6 }}
-                        >
-                          ARCHITECTURE
-                        </span>
-                        <span
-                          className='text-sm'
-                          style={{ color: 'var(--text-color)' }}
-                        >
-                          {systemInfo?.arch || 'Unknown'}
-                        </span>
-                      </div>
-                    </div>
+                    <AppInfoCard />
                   </div>
                 </div>
               </div>

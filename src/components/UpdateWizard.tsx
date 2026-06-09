@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Sparkles, ArrowRight, Check } from 'lucide-react';
+import { APP_CONFIG } from '../config/app';
 
 interface UpdateWizardProps {
   version: string;
@@ -23,7 +24,7 @@ export default function UpdateWizard({
           <div className='flex items-center gap-2'>
             <span className='w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse'></span>
             <span className='font-bold tracking-wider text-zinc-700 dark:text-zinc-400 uppercase'>
-              Shift Update Agent
+              {APP_CONFIG.name} Update Agent
             </span>
           </div>
           <span>v{version}</span>
@@ -36,7 +37,7 @@ export default function UpdateWizard({
 
           <div className='space-y-2'>
             <h1 className='text-2xl font-extrabold tracking-tight text-neutral-900 dark:text-white'>
-              Shift Updated Successfully
+              {APP_CONFIG.name} Updated Successfully
             </h1>
             <p className='text-zinc-600 dark:text-zinc-400 text-sm max-w-sm mx-auto leading-relaxed'>
               You are now running version {version}. We've squashed bugs and
