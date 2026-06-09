@@ -530,16 +530,16 @@ export default function Dashboard({
       >
         <div className='p-5 space-y-6'>
           {/* Rebranded Desk Emblem */}
-          <div className='flex items-center gap-2.5'>
+          <div className='flex items-center gap-1'>
             <div
-              className='w-7 h-7 rounded-lg flex items-center justify-center shadow-inner overflow-hidden'
+              className='w-7 h-7 rounded-lg flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0'
               style={{ backgroundColor: 'var(--card-bg)' }}
             >
               <img src={logoUrl} alt="Shift Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <h2 className='text-sm font-bold text-neutral-900 dark:text-white tracking-tight'>
-                Shift
+                hift
               </h2>
               <p className='text-[10px] text-zinc-500 dark:text-zinc-550 font-medium font-mono'>
                 v0.1.0 • Daemon
@@ -730,7 +730,7 @@ export default function Dashboard({
                   style={{ color: 'var(--text-color)' }}
                 >
                   <img src={logoUrl} alt="Shift Logo" className="w-8 h-8 rounded-lg shadow-sm" />
-                  <span>Shift</span>
+                  <span>hift</span>
                 </h1>
                 <p
                   className='text-sm font-sans pl-1 transition-colors'

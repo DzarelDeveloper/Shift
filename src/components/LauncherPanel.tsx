@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   Terminal,
@@ -20,7 +21,7 @@ import {
   Settings,
   AppWindow,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import logoUrl from '../assets/logo.png';
 import { Workspace, InstalledApp, LauncherItem } from '../types';
 import { useCommandPalette } from '../hooks/useCommandPalette';
 
@@ -79,10 +80,12 @@ export default function LauncherPanel({
   });
 
   return (
-    <div
-      id='launcher-modal-root'
-      className='fixed inset-0 z-50 flex items-start justify-center pt-24 px-4'
-    >
+    <AnimatePresence>
+      {isOpen && (
+        <div
+          id='launcher-modal-root'
+          className='fixed inset-0 z-50 flex items-start justify-center pt-24 px-4'
+        >
       {/* Absolute Backdrop with extreme blur */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -176,8 +179,7 @@ export default function LauncherPanel({
                 onMouseEnter={(e) => {
                   setSelectedIndex(index);
                   if (!isSelected) {
-                    e.currentTarget.style.backgroundColor =
-                      'color-mix(in srgb, var(--card-bg) 50%, transparent)';
+                    e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--card-bg) 50%, transparent)';
                   }
                 }}
                 className='flex items-center justify-between px-3 py-2.5 rounded cursor-pointer transition-all'
@@ -211,7 +213,7 @@ export default function LauncherPanel({
                     {item.type === 'workspace' ? (
                       getModeIcon(item.data.id)
                     ) : (
-                      <AppWindow className='w-5 h-5' />
+                      <img src={logoUrl} alt="Shift Logo" className="w-5 h-5 object-cover" />
                     )}
                   </div>
                   <div className='min-w-0 pr-2'>
@@ -426,6 +428,8 @@ export default function LauncherPanel({
           </button>
         </div>
       </motion.div>
-    </div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
