@@ -16,6 +16,7 @@ import {
 import { DEFAULT_WORKSPACES } from './data/defaultWorkspaces';
 import { useTheme } from './hooks/useTheme';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useDataStore } from './hooks/useDataStore';
 import Dashboard from './components/Dashboard';
 import OnboardingWizard from './components/OnboardingWizard';
 import UpdateWizard from './components/UpdateWizard';
@@ -45,6 +46,7 @@ interface AppContextType {
   setTheme: React.Dispatch<React.SetStateAction<ThemeConfig>>;
   exportWorkspaces: () => void;
   importWorkspaces: (file: File) => Promise<void>;
+  apps: InstalledApp[];
   triggerToast: (
     title: string,
     desc: string,
@@ -74,35 +76,22 @@ export default function App() {
     }
   }, []);
 
-  const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
-    localStorage.removeItem('workspace_launcher_items');
-    return DEFAULT_WORKSPACES;
-  });
+  const { data: workspaces, setData: setWorkspaces, isLoaded: workspacesLoaded } = useDataStore<Workspace[]>(
+    'workspaces.json',
+    DEFAULT_WORKSPACES,
+    { autoSave: true, parseRawApp: false }
+  );
 
   useEffect(() => {
-    localStorage.setItem(
-      'workspace_launcher_items',
-      JSON.stringify(workspaces)
-    );
-    console.log(`[Workspace Count]: ${workspaces.length}`);
-  }, [workspaces]);
+    if (workspacesLoaded) {
+      console.log(`[Workspace Count]: ${workspaces.length}`);
+    }
+  }, [workspaces, workspacesLoaded]);
 
-  const [launchAtStartup, setLaunchAtStartup] = useLocalStorage(
-    'workspace_launcher_startup',
-    true
-  );
-  const [minimizeToTray, setMinimizeToTray] = useLocalStorage(
-    'workspace_launcher_tray',
-    true
-  );
-  const [shortcutKey, setShortcutKey] = useLocalStorage(
-    'workspace_launcher_shortcut',
-    ''
-  );
-  const [autoBypassPreview, setAutoBypassPreview] = useLocalStorage(
-    'workspace_launcher_bypass_preview',
-    false
-  );
+  const { data: launchAtStartup, setData: setLaunchAtStartup } = useDataStore('settings_startup.json', true);
+  const { data: minimizeToTray, setData: setMinimizeToTray } = useDataStore('settings_tray.json', true);
+  const { data: shortcutKey, setData: setShortcutKey } = useDataStore('settings_shortcut.json', '');
+  const { data: autoBypassPreview, setData: setAutoBypassPreview } = useDataStore('settings_bypass.json', false);
 
   const [isMinimized, setIsMinimized] = useState(false);
   const [isLauncherOpen, setIsLauncherOpen] = useState(false);
@@ -386,6 +375,7 @@ export default function App() {
           setTheme,
           exportWorkspaces,
           importWorkspaces,
+          apps,
           triggerToast,
         }}
       >
@@ -447,6 +437,7 @@ export default function App() {
         setTheme,
         exportWorkspaces,
         importWorkspaces,
+        apps,
         triggerToast,
       }}
     >

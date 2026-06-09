@@ -25,8 +25,31 @@ struct SystemInfo {
 
 
 struct AppState {
-    current_shortcut: Mutex<Option<Shortcut>>,
+    launcher_shortcut: Mutex<Option<Shortcut>>,
+    dashboard_shortcut: Mutex<Option<Shortcut>>,
     minimize_to_tray: Mutex<bool>,
+}
+
+fn get_default_launcher_shortcut() -> &'static str {
+    #[cfg(target_os = "macos")]
+    {
+        "Cmd+Opt+Space"
+    }
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
+    {
+        "Ctrl+Alt+Space"
+    }
+}
+
+fn get_default_dashboard_shortcut() -> &'static str {
+    #[cfg(target_os = "macos")]
+    {
+        "Cmd+Opt+Enter"
+    }
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
+    {
+        "Ctrl+Alt+Enter"
+    }
 }
 
 #[tauri::command]
@@ -267,6 +290,7 @@ fn get_installed_apps() -> Vec<AppInfo> {
     }
     
     apps.sort_by(|a, b| a.name.cmp(&b.name));
+    eprintln!("[Apps Indexed] Count: {}", apps.len());
     apps
 }
 
@@ -395,30 +419,35 @@ fn set_global_shortcut(
     new_shortcut: String,
     state: tauri::State<AppState>
 ) -> Result<(), String> {
-    let mut current = state.current_shortcut.lock().unwrap();
-    if let Some(old_shortcut) = current.take() {
-        eprintln!("[Shortcut] Unregistering old shortcut: {:?}", old_shortcut);
-        let unregister_result = app_handle.global_shortcut().unregister(old_shortcut);
-        if let Err(e) = unregister_result {
-            eprintln!("[Shortcut] Failed to unregister shortcut: {}", e);
-        }
+    let mut launcher_guard = state.launcher_shortcut.lock().unwrap();
+    let mut dashboard_guard = state.dashboard_shortcut.lock().unwrap();
+
+    // Unregister old shortcuts
+    if let Some(old_launcher) = launcher_guard.take() {
+        let _ = app_handle.global_shortcut().unregister(old_launcher);
     }
-    let shortcut_to_parse = if new_shortcut.is_empty() {
-        get_default_shortcut().to_string()
+    if let Some(old_dashboard) = dashboard_guard.take() {
+        let _ = app_handle.global_shortcut().unregister(old_dashboard);
+    }
+
+    let launcher_str = if new_shortcut.is_empty() {
+        get_default_launcher_shortcut().to_string()
     } else {
         new_shortcut
     };
-    eprintln!("[Shortcut] Registering shortcut: {}", shortcut_to_parse);
-    let tauri_shortcut = shortcut_to_parse.parse::<Shortcut>().map_err(|e| {
-        eprintln!("[Shortcut] Registration failed: {}", e);
-        format!("Invalid shortcut: {}", e)
-    })?;
-    app_handle.global_shortcut().register(tauri_shortcut.clone()).map_err(|e| {
-        eprintln!("[Shortcut] Registration failed: {}", e);
-        e.to_string()
-    })?;
-    *current = Some(tauri_shortcut);
-    eprintln!("[Shortcut] Registration successful");
+    
+    let dashboard_str = get_default_dashboard_shortcut().to_string();
+
+    let launcher_sc = launcher_str.parse::<Shortcut>().map_err(|e| e.to_string())?;
+    let dashboard_sc = dashboard_str.parse::<Shortcut>().map_err(|e| e.to_string())?;
+
+    app_handle.global_shortcut().register(launcher_sc.clone()).map_err(|e| e.to_string())?;
+    app_handle.global_shortcut().register(dashboard_sc.clone()).map_err(|e| e.to_string())?;
+
+    *launcher_guard = Some(launcher_sc);
+    *dashboard_guard = Some(dashboard_sc);
+
+    eprintln!("[Shortcut] Registration successful: Launcher={}, Dashboard={}", launcher_str, dashboard_str);
     Ok(())
 }
 
@@ -428,24 +457,31 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().with_handler(|app, shortcut, _event| {
-            eprintln!("[Shortcut] Triggered: {:?}", shortcut);
+            eprintln!("[Shortcut Triggered] {:?}", shortcut);
             let state: tauri::State<AppState> = app.state();
-            let current = state.current_shortcut.lock().unwrap();
-            if let Some(current_shortcut) = &*current {
-                if current_shortcut == shortcut {
-                    if let Some(window) = app.get_webview_window("launcher") {
-                        if let Ok(is_visible) = window.is_visible() {
-                            if is_visible {
-                                let _ = window.hide();
-                                eprintln!("[Launcher Closed]");
-                            } else {
-                                let _ = window.show();
-                                let _ = window.unminimize();
-                                let _ = window.set_focus();
-                                eprintln!("[Launcher Opened]");
-                            }
+            let launcher_sc = state.launcher_shortcut.lock().unwrap().clone();
+            let dashboard_sc = state.dashboard_shortcut.lock().unwrap().clone();
+            
+            if Some(*shortcut) == launcher_sc {
+                if let Some(window) = app.get_webview_window("launcher") {
+                    if let Ok(is_visible) = window.is_visible() {
+                        if is_visible {
+                            let _ = window.hide();
+                            eprintln!("[Launcher Closed]");
+                        } else {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                            eprintln!("[Launcher Opened]");
                         }
                     }
+                }
+            } else if Some(*shortcut) == dashboard_sc {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                    eprintln!("[Dashboard Opened]");
                 }
             }
         }).build())
@@ -455,7 +491,8 @@ fn main() {
         ))
         .plugin(tauri_plugin_log::Builder::new().build())
         .manage(AppState {
-            current_shortcut: Mutex::new(None),
+            launcher_shortcut: Mutex::new(None),
+            dashboard_shortcut: Mutex::new(None),
             minimize_to_tray: Mutex::new(true),
         })
         .invoke_handler(tauri::generate_handler![

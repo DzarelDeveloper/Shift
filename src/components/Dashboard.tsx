@@ -107,18 +107,18 @@ export default function Dashboard({
   setIsMinimized,
   triggerToast,
 }: DashboardProps) {
-  const { theme, setTheme, exportWorkspaces, importWorkspaces } =
+  const { theme, setTheme, exportWorkspaces, importWorkspaces, apps } =
     useAppContext();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [appsLoading] = useState(false);
 
   // Simple desktop tabs: "home" | "workspaces" | "applications" | "settings" | "about"
   const [activeTab, setActiveTab] = useState<
     'home' | 'workspaces' | 'applications' | 'settings' | 'about'
   >('home');
 
-  // State untuk aplikasi terinstal dari API dan system info
-  const [osApps, setOsApps] = useState<RawInstalledApp[]>([]);
-  const [appsLoading, setAppsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // State untuk sistem info
   const [systemInfo, setSystemInfo] = useState<RawSystemInfo | null>(null);
 
   // Initialize autostart
@@ -206,14 +206,8 @@ export default function Dashboard({
         console.log('Successfully imported core and event!');
         const { invoke } = core;
         const { listen } = event;
-        console.log('Calling get_installed_apps...');
-        // Fetch apps
-        invoke('get_installed_apps')
-          .then((apps) => {
-            console.log('Got apps:', apps);
-            setOsApps(apps as RawInstalledApp[]);
-          })
-          .catch((e) => console.error('get_installed_apps error:', e));
+        // apps loaded via context - no need to invoke again
+          ;
         console.log('Calling get_system_info...');
         // Fetch system info
         invoke('get_system_info')
@@ -242,43 +236,8 @@ export default function Dashboard({
     return () => window.removeEventListener('switch-tab', handleSwitchTab);
   }, []);
 
-  // Fetch aplikasi dari API ketika tab Applications dibuka (if not already fetched)
-  useEffect(() => {
-    console.log(
-      'activeTab changed to:',
-      activeTab,
-      'osApps.length:',
-      osApps.length
-    );
-    if (activeTab === 'applications') {
-      console.log('Fetching apps because activeTab is applications!');
-      fetchInstalledApps();
-    }
-  }, [activeTab]);
+  
 
-  async function fetchInstalledApps() {
-    console.log(
-      '=== fetchInstalledApps CALLED! === ' + new Date().toISOString()
-    );
-    setAppsLoading(true);
-    try {
-      // Coba langsung import dan gunakan Tauri API
-      const core = await import('@tauri-apps/api/core');
-      const { invoke } = core;
-      console.log('About to invoke get_installed_apps...');
-      const apps = await invoke('get_installed_apps');
-      console.log('Got apps from invoke:', apps);
-      setOsApps(apps as RawInstalledApp[]);
-    } catch (error) {
-      console.error(
-        'Gagal mengambil daftar aplikasi (probably not in Tauri):',
-        error
-      );
-      setOsApps([]);
-    } finally {
-      setAppsLoading(false);
-    }
-  }
 
   // Selected workspace in detailed workspaces configurations view
   const [selectedExportWorkspace, setSelectedExportWorkspace] =
@@ -660,7 +619,7 @@ export default function Dashboard({
                   opacity: 0.8,
                 }}
               >
-                {osApps.length}
+                {apps.length}
               </span>
             </button>
 
@@ -1648,13 +1607,12 @@ export default function Dashboard({
                       opacity: 0.8,
                     }}
                   >
-                    Applications Found: {osApps.length}
+                    Applications Found: {apps.length}
                   </span>
                   <button
                     type='button'
                     onClick={() => {
-                      console.log('=== Refresh button clicked! ===');
-                      fetchInstalledApps();
+                      console.log('[Apps] Loaded from context — count:', apps.length);
                     }}
                     className='px-3 py-1.5 rounded text-xs flex items-center gap-1 transition-all cursor-pointer hover:opacity-90'
                     style={{
@@ -1726,7 +1684,7 @@ export default function Dashboard({
               {/* APPLICATIONS LIST GRID */}
               {!appsLoading && (
                 <>
-                  {osApps.filter((item) =>
+                  {apps.filter((item) =>
                     item.name
                       .toLowerCase()
                       .includes(osAppSearchQuery.toLowerCase())
@@ -1768,7 +1726,7 @@ export default function Dashboard({
                     </div>
                   ) : (
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      {osApps
+                      {apps
                         .filter((item) =>
                           item.name
                             .toLowerCase()
@@ -1781,7 +1739,7 @@ export default function Dashboard({
                           const AppIcon = ({
                             app,
                           }: {
-                            app: (typeof osApps)[0];
+                            app: (typeof apps)[0];
                           }) => {
                             const [iconLoaded, setIconLoaded] = useState(false);
                             const [iconError, setIconError] = useState(false);
@@ -3242,7 +3200,7 @@ export default function Dashboard({
 
                     {/* Autodetected layout Grid */}
                     <div className='grid grid-cols-2 sm:grid-cols-4 gap-2'>
-                      {osApps
+                      {apps
                         .filter((item) =>
                           item.name
                             .toLowerCase()
