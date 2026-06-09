@@ -538,14 +538,21 @@ export default function Dashboard({
               <img src={logoUrl} alt="Shift Logo" className="w-full h-full object-cover" />
             </div>
             <div>
-              <h2 className='text-sm font-bold text-neutral-900 dark:text-white tracking-tight'>
+              <h2
+                className='text-sm font-bold tracking-tight'
+                style={{ color: 'var(--text-color)' }}
+              >
                 hift
               </h2>
-              <p className='text-[10px] text-zinc-500 dark:text-zinc-550 font-medium font-mono'>
-                v0.1.0 • Daemon
+              <p
+                className='text-[10px] font-medium font-mono'
+                style={{ color: 'var(--text-color)', opacity: 0.5 }}
+              >
+                v0.5.3
               </p>
             </div>
           </div>
+
 
           {/* New Workspace Direct Action */}
           <button
@@ -704,7 +711,7 @@ export default function Dashboard({
             className='text-[9px] font-mono block'
             style={{ color: 'var(--text-color)', opacity: 0.6 }}
           >
-            Shift v0.3.0 • Desktop Wrapper
+            Shift v0.5.3
           </span>
         </div>
       </aside>

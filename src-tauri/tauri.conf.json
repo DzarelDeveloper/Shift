@@ -12,7 +12,7 @@
       "endpoints": [
         "https://github.com/DzarelDeveloper/Shift/releases/latest/download/latest.json"
       ],
-      "pubkey": "UPDATE_PUBKEY",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEExMzY5MDAyQTJCMTNFMzcKUldRM1ByR2lBcEEyb1Z2L3o0M1JjUXlKUEF6dUFIVlY5ckZpUkNIbmd5cTJjN09aemg5d3RSWUEK",
       "windows": {
         "installMode": "nsis"
       },
