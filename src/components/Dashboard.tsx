@@ -548,7 +548,7 @@ export default function Dashboard({
                 className='text-[10px] font-medium font-mono'
                 style={{ color: 'var(--text-color)', opacity: 0.5 }}
               >
-                v0.5.3
+                v0.5.4
               </p>
             </div>
           </div>
@@ -711,7 +711,7 @@ export default function Dashboard({
             className='text-[9px] font-mono block'
             style={{ color: 'var(--text-color)', opacity: 0.6 }}
           >
-            Shift v0.5.3
+            Shift v0.5.4
           </span>
         </div>
       </aside>

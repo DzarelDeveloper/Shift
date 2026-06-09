@@ -65,6 +65,15 @@ export const useAppContext = () => {
 export default function App() {
   const { theme, setTheme } = useTheme();
 
+  const [windowLabel, setWindowLabel] = useState<string>('main');
+  useEffect(() => {
+    if (isTauri) {
+      import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
+        setWindowLabel(getCurrentWindow().label);
+      });
+    }
+  }, []);
+
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
     localStorage.removeItem('workspace_launcher_items');
     return DEFAULT_WORKSPACES;
@@ -75,6 +84,7 @@ export default function App() {
       'workspace_launcher_items',
       JSON.stringify(workspaces)
     );
+    console.log(`[Workspace Count]: ${workspaces.length}`);
   }, [workspaces]);
 
   const [launchAtStartup, setLaunchAtStartup] = useLocalStorage(
@@ -99,11 +109,11 @@ export default function App() {
   const [apps, setApps] = useState<InstalledApp[]>([]);
 
   const [wizardState, setWizardState] = useState<'loading' | 'onboarding' | 'update' | 'none'>('loading');
-  const [currentVersion, setCurrentVersion] = useState('0.5.3');
+  const [currentVersion, setCurrentVersion] = useState('0.5.4');
 
   useEffect(() => {
     async function initWizardState() {
-      let version = '0.5.3';
+      let version = '0.5.4';
       try {
         if (typeof window !== 'undefined' && '__TAURI__' in window) {
           const { getVersion } = await import('@tauri-apps/api/app');
@@ -135,6 +145,7 @@ export default function App() {
           const { invoke } = await import('@tauri-apps/api/core');
           const installedApps = await invoke('get_installed_apps');
           setApps(installedApps as InstalledApp[]);
+          console.log(`[Installed Apps Count]: ${((installedApps as InstalledApp[]) || []).length}`);
         } catch (e) {
           console.error('Failed to fetch installed apps', e);
         }
@@ -332,6 +343,65 @@ export default function App() {
     },
     [autoBypassPreview, executeWorkspacePipeline]
   );
+
+  if (windowLabel === 'launcher') {
+    return (
+      <AppContext.Provider
+        value={{
+          workspaces,
+          setWorkspaces,
+          theme,
+          setTheme,
+          exportWorkspaces,
+          importWorkspaces,
+          triggerToast,
+        }}
+      >
+        <div className='w-screen h-screen bg-transparent font-sans select-none overflow-hidden text-neutral-900 dark:text-neutral-100'>
+          <LauncherPanel
+            isOpen={true}
+            onClose={async () => {
+              if (isTauri) {
+                const { getCurrentWindow } = await import('@tauri-apps/api/window');
+                await getCurrentWindow().hide();
+                console.log('[Launcher Closed]');
+              }
+            }}
+            workspaces={workspaces}
+            apps={apps}
+            onLaunch={handleLaunchItem}
+            onOpenDashboard={async () => {
+              if (isTauri) {
+                const { getCurrentWindow, getAllWindows } = await import('@tauri-apps/api/window');
+                await getCurrentWindow().hide();
+                const windows = await getAllWindows();
+                const mainWindow = windows.find((w) => w.label === 'main');
+                if (mainWindow) {
+                  await mainWindow.show();
+                  await mainWindow.unminimize();
+                  await mainWindow.setFocus();
+                }
+              }
+            }}
+            onOpenSettings={async () => {
+              if (isTauri) {
+                const { getCurrentWindow, getAllWindows } = await import('@tauri-apps/api/window');
+                await getCurrentWindow().hide();
+                const windows = await getAllWindows();
+                const mainWindow = windows.find((w) => w.label === 'main');
+                if (mainWindow) {
+                  await mainWindow.show();
+                  await mainWindow.unminimize();
+                  await mainWindow.setFocus();
+                  mainWindow.emit('open-settings');
+                }
+              }
+            }}
+          />
+        </div>
+      </AppContext.Provider>
+    );
+  }
 
   return (
     <AppContext.Provider

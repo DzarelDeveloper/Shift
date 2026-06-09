@@ -79,6 +79,12 @@ export default function LauncherPanel({
     onClose,
   });
 
+  React.useEffect(() => {
+    if (isOpen) {
+      console.log(`[Search Results Count]: ${filteredItems.length}`);
+    }
+  }, [filteredItems.length, isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -344,25 +350,47 @@ export default function LauncherPanel({
               style={{ color: 'var(--text-color)', opacity: 0.6 }}
             >
               <Command className='w-6 h-6 mb-2' style={{ opacity: 0.3 }} />
-              <p className='text-xs font-semibold mb-3'>No items found</p>
-              <button
-                onClick={onOpenDashboard}
-                className='px-4 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 transition-opacity'
-                style={{
-                  backgroundColor: 'var(--card-bg)',
-                  borderColor: 'var(--border-color)',
-                  color: 'var(--text-color)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = '0.8';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = '1';
-                }}
-              >
-                <AppWindow className='w-3 h-3' />
-                <span>Open Dashboard</span>
-              </button>
+              <p className='text-xs font-semibold mb-3'>
+                {workspaces.length === 0 ? 'Welcome to Shift' : 'No items found'}
+              </p>
+              <div className='flex gap-2 items-center'>
+                <button
+                  onClick={onOpenDashboard}
+                  className='px-3 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 transition-opacity'
+                  style={{
+                    backgroundColor: 'var(--card-bg)',
+                    borderColor: 'var(--border-color)',
+                    color: 'var(--text-color)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.8';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                >
+                  <AppWindow className='w-3 h-3' />
+                  <span>Open Dashboard</span>
+                </button>
+                <button
+                  onClick={onOpenSettings}
+                  className='px-3 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 transition-opacity'
+                  style={{
+                    backgroundColor: 'var(--card-bg)',
+                    borderColor: 'var(--border-color)',
+                    color: 'var(--text-color)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.8';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                >
+                  <Settings className='w-3 h-3' />
+                  <span>Settings</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

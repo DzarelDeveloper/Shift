@@ -108,12 +108,29 @@ export function useCommandPalette({
       return scoreB - scoreA;
     });
 
-  // Focus input on open
+  // Focus input on open and handle open-launcher event
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
       setQuery('');
       setSelectedIndex(0);
+
+      const isTauriEnv = typeof window !== 'undefined' && '__TAURI__' in window;
+      let unlisten: (() => void) | undefined;
+      
+      if (isTauriEnv) {
+        import('@tauri-apps/api/event').then(({ listen }) => {
+          listen('open-launcher', () => {
+            setTimeout(() => inputRef.current?.focus(), 50);
+            setQuery('');
+            setSelectedIndex(0);
+          }).then((fn) => { unlisten = fn; });
+        });
+      }
+
+      return () => {
+        if (unlisten) unlisten();
+      };
     }
   }, [isOpen]);
 

@@ -433,12 +433,19 @@ fn main() {
             let current = state.current_shortcut.lock().unwrap();
             if let Some(current_shortcut) = &*current {
                 if current_shortcut == shortcut {
-                    if let Some(window) = app.get_webview_window("main") {
-                        eprintln!("[Shortcut] Found main window");
-                        let _ = window.show();
-                        let _ = window.unminimize();
-                        let _ = window.set_focus();
-                        let _ = window.emit("open-launcher", ());
+                    if let Some(window) = app.get_webview_window("launcher") {
+                        if let Ok(is_visible) = window.is_visible() {
+                            if is_visible {
+                                let _ = window.hide();
+                                eprintln!("[Launcher Closed]");
+                            } else {
+                                let _ = window.show();
+                                let _ = window.unminimize();
+                                let _ = window.set_focus();
+                                let _ = window.emit("open-launcher", ());
+                                eprintln!("[Launcher Opened]");
+                            }
+                        }
                     }
                 }
             }

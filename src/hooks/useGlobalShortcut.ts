@@ -41,8 +41,14 @@ export function useGlobalShortcut({
             setIsMinimized(false);
             setIsLauncherOpen((prev) => !prev);
           });
-          const unlistenBlur = listen('tauri://blur', () => {
+          const unlistenBlur = listen('tauri://blur', async () => {
             setIsLauncherOpen(false);
+            const { getCurrentWindow } = await import('@tauri-apps/api/window');
+            const win = getCurrentWindow();
+            if (win.label === 'launcher') {
+              await win.hide();
+              console.log('[Launcher Closed]');
+            }
           });
           return () => {
             unlistenLauncher.then((fn) => fn());
