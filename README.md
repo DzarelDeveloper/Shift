@@ -82,6 +82,14 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DzarelDeveloper/Shift/main/install.ps1" -UseBasicParsing).Content
 ```
 
+> **Troubleshooting: Error "git is not recognized"**
+> Jika Anda mendapatkan error yang menyebutkan `The term 'git' is not recognized` saat instalasi di Windows, itu berarti Git belum terinstal.
+> Anda dapat menginstalnya dengan menjalankan perintah berikut di PowerShell:
+> ```powershell
+> winget install --id Git.Git -e --source winget
+> ```
+> Setelah selesai, **tutup PowerShell**, buka kembali yang baru, dan jalankan ulang perintah instalasi di atas.
+
 #### Update Shift
 
 Buka PowerShell as Administrator dan jalankan:

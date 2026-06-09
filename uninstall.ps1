@@ -1,6 +1,5 @@
 # Shift Uninstaller Script for Windows
 # Restore your workflow in seconds.
-# Version: 0.5.0
 # Author: Muhamad Dzarel Alghifari
 # GitHub: https://github.com/DzarelDeveloper/Shift
 
@@ -21,17 +20,23 @@ try {
     Write-Host "Shift is not running" -ForegroundColor Blue
 }
 
-# Remove install directory
+$UninstallerPath = "$INSTALL_DIR\Uninstall Shift.exe"
+
+if (Test-Path $UninstallerPath) {
+    Write-Host "Running official uninstaller..." -ForegroundColor Yellow
+    # Run NSIS uninstaller silently
+    Start-Process -FilePath $UninstallerPath -ArgumentList "/S" -Wait -NoNewWindow
+    Write-Host "Shift uninstalled successfully!" -ForegroundColor Green
+    exit 0
+}
+
+# Fallback manual removal
+Write-Host "Official uninstaller not found, running manual cleanup..." -ForegroundColor Yellow
+
 if (Test-Path $INSTALL_DIR) {
     Write-Host "Removing Shift installation directory..." -ForegroundColor Yellow
     Remove-Item -Path $INSTALL_DIR -Recurse -Force
 }
-
-# Remove from PATH
-Write-Host "Removing from PATH..." -ForegroundColor Yellow
-$Path = [Environment]::GetEnvironmentVariable("Path", "User")
-$NewPath = ($Path -split ';' | Where-Object { $_ -ne $INSTALL_DIR }) -join ';'
-[Environment]::SetEnvironmentVariable("Path", $NewPath, "User")
 
 # Remove shortcuts
 Write-Host "Removing shortcuts..." -ForegroundColor Yellow

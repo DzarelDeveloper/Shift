@@ -16,13 +16,13 @@ import {
   Cpu,
   Globe,
   Folder,
-  Code,
   Brush,
   BookOpen,
   ShieldAlert,
   Sliders,
 } from 'lucide-react';
 import { Workspace } from '../types';
+import logoUrl from '../assets/logo.png';
 
 interface OnboardingWizardProps {
   onComplete: (config: {
@@ -95,8 +95,8 @@ export default function OnboardingWizard({
                 exit={{ opacity: 0, x: -10 }}
                 className='space-y-6 text-center'
               >
-                <div className='mx-auto w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 flex items-center justify-center shadow-inner'>
-                  <Command className='w-8 h-8 text-neutral-900 dark:text-white stroke-[1.5]' />
+                <div className='mx-auto w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 flex items-center justify-center shadow-inner overflow-hidden'>
+                  <img src={logoUrl} alt="Shift Logo" className="w-full h-full object-cover" />
                 </div>
 
                 <div className='space-y-2'>

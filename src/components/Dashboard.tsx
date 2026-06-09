@@ -68,6 +68,7 @@ import {
 } from '../utils/scriptGenerator';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppContext } from '../App';
+import logoUrl from '../assets/logo.png';
 
 interface DashboardProps {
   workspaces: Workspace[];
@@ -531,13 +532,10 @@ export default function Dashboard({
           {/* Rebranded Desk Emblem */}
           <div className='flex items-center gap-2.5'>
             <div
-              className='w-7 h-7 rounded-lg flex items-center justify-center shadow-inner'
+              className='w-7 h-7 rounded-lg flex items-center justify-center shadow-inner overflow-hidden'
               style={{ backgroundColor: 'var(--card-bg)' }}
             >
-              <Command
-                className='w-3.5 h-3.5 stroke-[2.5]'
-                style={{ color: 'var(--text-color)' }}
-              />
+              <img src={logoUrl} alt="Shift Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <h2 className='text-sm font-bold text-neutral-900 dark:text-white tracking-tight'>
@@ -731,10 +729,7 @@ export default function Dashboard({
                   className='text-3xl font-extrabold tracking-tight flex items-center gap-2 justify-center sm:justify-start'
                   style={{ color: 'var(--text-color)' }}
                 >
-                  <Command
-                    className='w-7 h-7 stroke-[2.5]'
-                    style={{ color: 'var(--text-color)' }}
-                  />
+                  <img src={logoUrl} alt="Shift Logo" className="w-8 h-8 rounded-lg shadow-sm" />
                   <span>Shift</span>
                 </h1>
                 <p

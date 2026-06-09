@@ -104,11 +104,11 @@ export default function App() {
   const [apps, setApps] = useState<InstalledApp[]>([]);
 
   const [wizardState, setWizardState] = useState<'loading' | 'onboarding' | 'update' | 'none'>('loading');
-  const [currentVersion, setCurrentVersion] = useState('0.5.2');
+  const [currentVersion, setCurrentVersion] = useState('0.5.3');
 
   useEffect(() => {
     async function initWizardState() {
-      let version = '0.5.2';
+      let version = '0.5.3';
       try {
         if (typeof window !== 'undefined' && '__TAURI__' in window) {
           const { getVersion } = await import('@tauri-apps/api/app');

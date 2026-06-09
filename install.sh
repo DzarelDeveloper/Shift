@@ -1,13 +1,11 @@
 #!/bin/bash
 
-# Shift Installer Script
+# Shift Installer Script for Linux
 # Restore your workflow in seconds.
-# Version: 0.5.0
 # Author: Muhamad Dzarel Alghifari
 # GitHub: https://github.com/DzarelDeveloper/Shift
 
 set -e  # Exit on error
-set -o pipefail  # Exit if any command in a pipeline fails
 
 # Colors for output
 RED='\033[0;31m'
@@ -18,12 +16,6 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 NC='\033[0m' # No Color
-
-APP_VERSION="0.5.0"
-AUTHOR="Muhamad Dzarel Alghifari"
-GITHUB_URL="https://github.com/DzarelDeveloper/Shift"
-INSTALL_DIR="$HOME/.local/share/shift"
-BIN_DIR="$HOME/.local/bin"
 
 print_divider() {
     echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
@@ -39,89 +31,96 @@ print_banner() {
     echo " ███████║██║  ██║██║██║        ██║       ██║██║ ╚████║███████║   ██║   ██║  ██║███████╗███████╗ "
     echo " ╚══════╝╚═╝  ╚═╝╚═╝╚═╝        ╚═╝       ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝ "
     echo -e "${NC}"
-    echo -e "Version: ${GREEN}${APP_VERSION}${NC}"
-    echo -e "Author: ${BLUE}${AUTHOR}${NC}"
-    echo -e "GitHub: ${CYAN}${GITHUB_URL}${NC}"
+    echo -e "Installer: ${WHITE}Downloading Latest Release${NC}"
+    echo -e "Author: ${BLUE}Muhamad Dzarel Alghifari${NC}"
     print_divider
 }
 
 print_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-print_step() { local step_num=$1; local step_desc=$2; echo -e "${PURPLE}[${step_num}]${NC} ${step_desc}"; }
+print_step() { echo -e "${PURPLE}[$1]${NC} $2"; }
 
 print_banner
 echo ""
 
-# Function to clean up temp directory
-cleanup() {
-    if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
-        print_info "Cleaning up temporary files..."
-        rm -rf "$TEMP_DIR"
-    fi
-}
-trap cleanup EXIT
-
-# Check if we're in the repository directory
-if [ -f "package.json" ] && [ -d "src-tauri" ]; then
-    print_info "Running from repository directory..."
-    WORK_DIR="$(pwd)"
+# Check for curl or wget
+if command -v curl &> /dev/null; then
+    API_CMD="curl -s"
+elif command -v wget &> /dev/null; then
+    API_CMD="wget -qO-"
 else
-    # Clone repository to temp directory
-    print_step "1" "Cloning Shift repository..."
-    TEMP_DIR="$(mktemp -d)"
-    git clone --depth 1 "$GITHUB_URL" "$TEMP_DIR"
-    WORK_DIR="$TEMP_DIR"
-    cd "$WORK_DIR"
-    print_success "Repository cloned!"
-fi
-
-# Create install directories
-print_step "2" "Creating install directories..."
-mkdir -p "$INSTALL_DIR"
-mkdir -p "$BIN_DIR"
-print_success "Directories created!"
-
-print_step "3" "Installing dependencies..."
-cd "$WORK_DIR"
-npm install
-print_success "Dependencies installed!"
-
-print_step "4" "Building Shift with Tauri..."
-# Try to build, allow bundling to fail as long as binary is created
-npm run tauri build || true
-# Check if binary exists even if bundling failed
-if [ -f "$WORK_DIR/src-tauri/target/release/shift" ]; then
-    print_success "Build complete!"
-else
-    print_error "Failed to build Shift!"
+    print_error "Neither curl nor wget is installed. Please install one of them."
     exit 1
 fi
+
+print_step "1" "Fetching latest release information..."
+RELEASE_DATA=$($API_CMD "https://api.github.com/repos/DzarelDeveloper/Shift/releases/latest")
+
+if [ -z "$RELEASE_DATA" ]; then
+    print_error "Failed to fetch release data from GitHub API."
+    exit 1
+fi
+
+VERSION=$(echo "$RELEASE_DATA" | grep '"tag_name":' | cut -d '"' -f 4)
+if [ -z "$VERSION" ]; then
+    print_error "Could not parse version from GitHub API response."
+    exit 1
+fi
+print_success "Found version: $VERSION"
+
+print_step "2" "Detecting OS and package manager..."
+
+if command -v apt-get &> /dev/null; then
+    PKG_TYPE="deb"
+    INSTALL_CMD="sudo apt-get install -y"
+elif command -v dnf &> /dev/null || command -v yum &> /dev/null || command -v rpm &> /dev/null; then
+    PKG_TYPE="rpm"
+    INSTALL_CMD="sudo rpm -i"
+else
+    PKG_TYPE="AppImage"
+    INSTALL_CMD=""
+fi
+
+print_info "Detected package type: $PKG_TYPE"
+
+print_step "3" "Locating $PKG_TYPE asset..."
+ASSET_URL=$(echo "$RELEASE_DATA" | grep '"browser_download_url":' | grep "\.$PKG_TYPE" | head -n 1 | cut -d '"' -f 4)
+
+if [ -z "$ASSET_URL" ]; then
+    print_error "Could not find a .$PKG_TYPE installer for version $VERSION."
+    exit 1
+fi
+
+print_info "Download URL: $ASSET_URL"
+
+print_step "4" "Downloading Shift..."
+TEMP_DIR="$(mktemp -d)"
+FILE_NAME="shift-$VERSION.$PKG_TYPE"
+DOWNLOAD_PATH="$TEMP_DIR/$FILE_NAME"
+
+if command -v curl &> /dev/null; then
+    curl -L "$ASSET_URL" -o "$DOWNLOAD_PATH"
+else
+    wget "$ASSET_URL" -O "$DOWNLOAD_PATH"
+fi
+
+print_success "Download complete."
 
 print_step "5" "Installing Shift..."
-
-# Copy the built binary
-if [ -f "$WORK_DIR/src-tauri/target/release/shift" ]; then
-    cp "$WORK_DIR/src-tauri/target/release/shift" "$INSTALL_DIR/"
-    chmod +x "$INSTALL_DIR/shift"
-    print_success "Binary copied to install directory!"
-else
-    print_error "Could not find built binary!"
-    exit 1
-fi
-
-# Create symlink
-if [ -f "$INSTALL_DIR/shift" ]; then
-    ln -sf "$INSTALL_DIR/shift" "$BIN_DIR/shift"
-    print_success "Symlink created at $BIN_DIR/shift"
-fi
-
-# Create desktop shortcut
-print_step "6" "Creating desktop shortcut..."
-DESKTOP_FILE="$HOME/.local/share/applications/shift.desktop"
-mkdir -p "$(dirname "$DESKTOP_FILE")"
-cat > "$DESKTOP_FILE" << EOL
+if [ "$PKG_TYPE" = "AppImage" ]; then
+    INSTALL_DIR="$HOME/.local/bin"
+    mkdir -p "$INSTALL_DIR"
+    cp "$DOWNLOAD_PATH" "$INSTALL_DIR/shift.AppImage"
+    chmod +x "$INSTALL_DIR/shift.AppImage"
+    
+    # Create symlink
+    ln -sf "$INSTALL_DIR/shift.AppImage" "$INSTALL_DIR/shift"
+    
+    # Create desktop shortcut
+    DESKTOP_FILE="$HOME/.local/share/applications/shift.desktop"
+    mkdir -p "$(dirname "$DESKTOP_FILE")"
+    cat > "$DESKTOP_FILE" << EOL
 [Desktop Entry]
 Name=Shift
 Comment=Restore your workflow in seconds
@@ -131,8 +130,16 @@ Terminal=false
 Type=Application
 Categories=Utility;
 EOL
-chmod +x "$DESKTOP_FILE"
-print_success "Desktop shortcut created!"
+    chmod +x "$DESKTOP_FILE"
+    print_success "AppImage installed to $INSTALL_DIR"
+else
+    print_info "Administrator privileges (sudo) are required to install .$PKG_TYPE packages."
+    $INSTALL_CMD "$DOWNLOAD_PATH"
+    print_success "Package installed."
+fi
+
+# Clean up
+rm -rf "$TEMP_DIR"
 
 echo ""
 print_divider
