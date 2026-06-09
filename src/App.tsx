@@ -108,8 +108,10 @@ export default function App() {
   const [isLauncherOpen, setIsLauncherOpen] = useState(false);
   const [apps, setApps] = useState<InstalledApp[]>([]);
 
-  const [wizardState, setWizardState] = useState<'loading' | 'onboarding' | 'update' | 'none'>('loading');
-  const [currentVersion, setCurrentVersion] = useState('0.5.4');
+  const [wizardState, setWizardState] = useState<
+    'loading' | 'onboarding' | 'update' | 'none'
+  >('loading');
+  const [currentVersion, setCurrentVersion] = useState('0.5.5');
 
   useEffect(() => {
     async function initWizardState() {
@@ -125,7 +127,8 @@ export default function App() {
       setCurrentVersion(version);
 
       const savedVersion = localStorage.getItem('shift_last_version');
-      const hasCompletedOnboarding = localStorage.getItem('shift_onboarding_completed') === 'true';
+      const hasCompletedOnboarding =
+        localStorage.getItem('shift_onboarding_completed') === 'true';
 
       if (!hasCompletedOnboarding) {
         setWizardState('onboarding');
@@ -145,7 +148,9 @@ export default function App() {
           const { invoke } = await import('@tauri-apps/api/core');
           const installedApps = await invoke('get_installed_apps');
           setApps(installedApps as InstalledApp[]);
-          console.log(`[Installed Apps Count]: ${((installedApps as InstalledApp[]) || []).length}`);
+          console.log(
+            `[Installed Apps Count]: ${((installedApps as InstalledApp[]) || []).length}`
+          );
         } catch (e) {
           console.error('Failed to fetch installed apps', e);
         }
@@ -191,6 +196,27 @@ export default function App() {
     previewingWorkspace,
     triggerToast,
   });
+
+  // Auto-hide the launcher window when it loses focus (click outside)
+  useEffect(() => {
+    if (windowLabel !== 'launcher') return;
+    if (!isTauri) return;
+
+    let unlisten: (() => void) | null = null;
+    import('@tauri-apps/api/event').then(({ listen }) => {
+      listen('tauri://blur', async () => {
+        const { getCurrentWindow } = await import('@tauri-apps/api/window');
+        await getCurrentWindow().hide();
+        console.log('[Launcher auto-hidden on blur]');
+      }).then((fn) => {
+        unlisten = fn;
+      });
+    });
+
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, [windowLabel]);
 
   const exportWorkspaces = useCallback(() => {
     const jsonString = createExportData(workspaces, {
@@ -271,7 +297,9 @@ export default function App() {
         'Welcome to Shift! Create your first workspace.',
         'success'
       );
-      window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'home' }));
+      window.dispatchEvent(
+        new window.CustomEvent('switch-tab', { detail: 'home' })
+      );
     },
     [triggerToast, setMinimizeToTray, setLaunchAtStartup, currentVersion]
   );
@@ -279,7 +307,11 @@ export default function App() {
   const handleUpdateComplete = useCallback(() => {
     localStorage.setItem('shift_last_version', currentVersion);
     setWizardState('none');
-    triggerToast('Update Complete', `Shift has been updated to v${currentVersion}`, 'success');
+    triggerToast(
+      'Update Complete',
+      `Shift has been updated to v${currentVersion}`,
+      'success'
+    );
   }, [currentVersion, triggerToast]);
 
   useEffect(() => {
@@ -362,7 +394,8 @@ export default function App() {
             isOpen={true}
             onClose={async () => {
               if (isTauri) {
-                const { getCurrentWindow } = await import('@tauri-apps/api/window');
+                const { getCurrentWindow } =
+                  await import('@tauri-apps/api/window');
                 await getCurrentWindow().hide();
                 console.log('[Launcher Closed]');
               }
@@ -372,7 +405,8 @@ export default function App() {
             onLaunch={handleLaunchItem}
             onOpenDashboard={async () => {
               if (isTauri) {
-                const { getCurrentWindow, getAllWindows } = await import('@tauri-apps/api/window');
+                const { getCurrentWindow, getAllWindows } =
+                  await import('@tauri-apps/api/window');
                 await getCurrentWindow().hide();
                 const windows = await getAllWindows();
                 const mainWindow = windows.find((w) => w.label === 'main');
@@ -385,7 +419,8 @@ export default function App() {
             }}
             onOpenSettings={async () => {
               if (isTauri) {
-                const { getCurrentWindow, getAllWindows } = await import('@tauri-apps/api/window');
+                const { getCurrentWindow, getAllWindows } =
+                  await import('@tauri-apps/api/window');
                 await getCurrentWindow().hide();
                 const windows = await getAllWindows();
                 const mainWindow = windows.find((w) => w.label === 'main');
@@ -453,12 +488,16 @@ export default function App() {
           onOpenDashboard={() => {
             setIsLauncherOpen(false);
             setIsMinimized(false);
-            window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'home' }));
+            window.dispatchEvent(
+              new window.CustomEvent('switch-tab', { detail: 'home' })
+            );
           }}
           onOpenSettings={() => {
             setIsLauncherOpen(false);
             setIsMinimized(false);
-            window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'settings' }));
+            window.dispatchEvent(
+              new window.CustomEvent('switch-tab', { detail: 'settings' })
+            );
           }}
         />
 
@@ -496,7 +535,10 @@ export default function App() {
         )}
 
         {wizardState === 'update' && (
-          <UpdateWizard version={currentVersion} onComplete={handleUpdateComplete} />
+          <UpdateWizard
+            version={currentVersion}
+            onComplete={handleUpdateComplete}
+          />
         )}
       </div>
     </AppContext.Provider>

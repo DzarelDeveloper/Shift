@@ -62,6 +62,13 @@ for arg in "$@"; do
         NON_INTERACTIVE=1
     fi
 done
+# Check for purge-data flag
+PURGE_DATA=0
+for arg in "$@"; do
+    if [ "$arg" = "--purge-data" ]; then
+        PURGE_DATA=1
+    fi
+done
 
 if [ $NON_INTERACTIVE -eq 1 ]; then
     print_info "Non-interactive mode: proceeding with uninstallation..."
@@ -83,34 +90,22 @@ print_info "Stopping Shift if running..."
 pkill -f "shift" 2>/dev/null || true
 print_success "Check complete!"
 
-# Common Shift data directories
-declare -a SHIFT_DIRS=(
-    "$INSTALL_DIR"
-    "$HOME/.config/shift"
-    "$HOME/.local/share/shift"
-    "$HOME/.cache/shift"
-    "$HOME/Library/Application Support/shift"
-    "$HOME/Library/Caches/shift"
-    "$HOME/Library/Preferences/shift"
-    "$XDG_CONFIG_HOME/shift"
-    "$XDG_DATA_HOME/shift"
-    "$XDG_CACHE_HOME/shift"
-)
-
+# Preserve user data directories; only remove binary and desktop entries
 declare -a SHIFT_FILES=(
     "$BIN_DIR/shift"
     "$HOME/Desktop/shift.desktop"
     "$HOME/.local/share/applications/shift.desktop"
 )
 
-# Remove directories
-for dir in "${SHIFT_DIRS[@]}"; do
-    if [ -d "$dir" ]; then
-        print_info "Removing directory: $dir"
-        rm -rf "$dir"
-        print_success "Directory removed!"
+# Remove files (binary and shortcuts)
+for file in "${SHIFT_FILES[@]}"; do
+    if [ -f "$file" ] || [ -L "$file" ]; then
+        print_info "Removing file: $file"
+        rm -f "$file"
+        print_success "File removed!"
     fi
 done
+
 
 # Remove files
 for file in "${SHIFT_FILES[@]}"; do

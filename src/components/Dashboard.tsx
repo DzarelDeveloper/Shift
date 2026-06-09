@@ -535,7 +535,11 @@ export default function Dashboard({
               className='w-7 h-7 rounded-lg flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0'
               style={{ backgroundColor: 'var(--card-bg)' }}
             >
-              <img src={logoUrl} alt="Shift Logo" className="w-full h-full object-cover" />
+              <img
+                src={logoUrl}
+                alt='Shift Logo'
+                className='w-full h-full object-cover'
+              />
             </div>
             <div>
               <h2
@@ -548,11 +552,10 @@ export default function Dashboard({
                 className='text-[10px] font-medium font-mono'
                 style={{ color: 'var(--text-color)', opacity: 0.5 }}
               >
-                v0.5.4
+                v0.5.5
               </p>
             </div>
           </div>
-
 
           {/* New Workspace Direct Action */}
           <button
@@ -711,7 +714,7 @@ export default function Dashboard({
             className='text-[9px] font-mono block'
             style={{ color: 'var(--text-color)', opacity: 0.6 }}
           >
-            Shift v0.5.4
+            Shift v0.5.5
           </span>
         </div>
       </aside>
@@ -736,7 +739,11 @@ export default function Dashboard({
                   className='text-3xl font-extrabold tracking-tight flex items-center gap-2 justify-center sm:justify-start'
                   style={{ color: 'var(--text-color)' }}
                 >
-                  <img src={logoUrl} alt="Shift Logo" className="w-8 h-8 rounded-lg shadow-sm" />
+                  <img
+                    src={logoUrl}
+                    alt='Shift Logo'
+                    className='w-8 h-8 rounded-lg shadow-sm'
+                  />
                   <span>hift</span>
                 </h1>
                 <p

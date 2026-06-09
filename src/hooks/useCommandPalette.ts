@@ -117,14 +117,16 @@ export function useCommandPalette({
 
       const isTauriEnv = typeof window !== 'undefined' && '__TAURI__' in window;
       let unlisten: (() => void) | undefined;
-      
+
       if (isTauriEnv) {
         import('@tauri-apps/api/event').then(({ listen }) => {
           listen('open-launcher', () => {
             setTimeout(() => inputRef.current?.focus(), 50);
             setQuery('');
             setSelectedIndex(0);
-          }).then((fn) => { unlisten = fn; });
+          }).then((fn) => {
+            unlisten = fn;
+          });
         });
       }
 

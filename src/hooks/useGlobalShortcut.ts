@@ -24,42 +24,22 @@ export function useGlobalShortcut({
   previewingWorkspace,
   triggerToast,
 }: UseGlobalShortcutProps) {
+  // Register global shortcut and minimize-to-tray in Tauri backend
+  // The Rust handler directly shows/hides the launcher window — no frontend event needed
   useEffect(() => {
     const isTauriEnv = typeof window !== 'undefined' && '__TAURI__' in window;
     if (isTauriEnv) {
-      Promise.all([
-        import('@tauri-apps/api/core'),
-        import('@tauri-apps/api/event'),
-      ])
-        .then(([core, event]) => {
+      import('@tauri-apps/api/core')
+        .then((core) => {
           const { invoke } = core;
-          const { listen } = event;
           invoke('set_global_shortcut', { newShortcut: shortcutKey });
           invoke('set_minimize_to_tray', { value: minimizeToTray });
-          const unlistenLauncher = listen('open-launcher', () => {
-            console.log('open-launcher event received!');
-            setIsMinimized(false);
-            setIsLauncherOpen((prev) => !prev);
-          });
-          const unlistenBlur = listen('tauri://blur', async () => {
-            setIsLauncherOpen(false);
-            const { getCurrentWindow } = await import('@tauri-apps/api/window');
-            const win = getCurrentWindow();
-            if (win.label === 'launcher') {
-              await win.hide();
-              console.log('[Launcher Closed]');
-            }
-          });
-          return () => {
-            unlistenLauncher.then((fn) => fn());
-            unlistenBlur.then((fn) => fn());
-          };
         })
         .catch((e) =>
           console.error('Failed to initialize global shortcut in Tauri:', e)
         );
     }
-  }, [shortcutKey, minimizeToTray, setIsMinimized, setIsLauncherOpen]);
+  }, [shortcutKey, minimizeToTray]);
 
   useEffect(() => {
     const handleGlobalShortcut = (e: KeyboardEvent) => {

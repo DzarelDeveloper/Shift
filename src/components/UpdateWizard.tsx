@@ -7,7 +7,10 @@ interface UpdateWizardProps {
   onComplete: () => void;
 }
 
-export default function UpdateWizard({ version, onComplete }: UpdateWizardProps) {
+export default function UpdateWizard({
+  version,
+  onComplete,
+}: UpdateWizardProps) {
   return (
     <div className='fixed inset-0 z-50 bg-[#09090b]/95 backdrop-blur-md flex items-center justify-center p-4'>
       <motion.div
@@ -36,22 +39,30 @@ export default function UpdateWizard({ version, onComplete }: UpdateWizardProps)
               Shift Updated Successfully
             </h1>
             <p className='text-zinc-600 dark:text-zinc-400 text-sm max-w-sm mx-auto leading-relaxed'>
-              You are now running version {version}. We've squashed bugs and improved performance to make your workspace automation even faster.
+              You are now running version {version}. We've squashed bugs and
+              improved performance to make your workspace automation even
+              faster.
             </p>
           </div>
 
           <div className='bg-zinc-100/40 dark:bg-zinc-900/40 border border-zinc-300 dark:border-zinc-900 rounded-lg p-4 max-w-xs mx-auto text-left space-y-2'>
             <div className='flex items-start gap-2 text-xs'>
               <Check className='w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0' />
-              <span className='text-zinc-700 dark:text-zinc-300'>Faster workspace launching</span>
+              <span className='text-zinc-700 dark:text-zinc-300'>
+                Faster workspace launching
+              </span>
             </div>
             <div className='flex items-start gap-2 text-xs'>
               <Check className='w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0' />
-              <span className='text-zinc-700 dark:text-zinc-300'>UI & navigation improvements</span>
+              <span className='text-zinc-700 dark:text-zinc-300'>
+                UI & navigation improvements
+              </span>
             </div>
             <div className='flex items-start gap-2 text-xs'>
               <Check className='w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0' />
-              <span className='text-zinc-700 dark:text-zinc-300'>Better settings management</span>
+              <span className='text-zinc-700 dark:text-zinc-300'>
+                Better settings management
+              </span>
             </div>
           </div>
         </div>

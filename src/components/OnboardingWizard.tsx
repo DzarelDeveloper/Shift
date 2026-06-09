@@ -96,7 +96,11 @@ export default function OnboardingWizard({
                 className='space-y-6 text-center'
               >
                 <div className='mx-auto w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 flex items-center justify-center shadow-inner overflow-hidden'>
-                  <img src={logoUrl} alt="Shift Logo" className="w-full h-full object-cover" />
+                  <img
+                    src={logoUrl}
+                    alt='Shift Logo'
+                    className='w-full h-full object-cover'
+                  />
                 </div>
 
                 <div className='space-y-2'>
