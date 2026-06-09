@@ -245,7 +245,7 @@ export default function App() {
         'Welcome to Shift! Create your first workspace.',
         'success'
       );
-      window.dispatchEvent(new window.CustomEvent('switch-tab', { detail: 'home' }));
+      window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'home' }));
     },
     [triggerToast, setMinimizeToTray, setLaunchAtStartup, currentVersion]
   );
@@ -368,12 +368,12 @@ export default function App() {
           onOpenDashboard={() => {
             setIsLauncherOpen(false);
             setIsMinimized(false);
-            window.dispatchEvent(new window.CustomEvent('switch-tab', { detail: 'home' }));
+            window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'home' }));
           }}
           onOpenSettings={() => {
             setIsLauncherOpen(false);
             setIsMinimized(false);
-            window.dispatchEvent(new window.CustomEvent('switch-tab', { detail: 'settings' }));
+            window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'settings' }));
           }}
         />
 
