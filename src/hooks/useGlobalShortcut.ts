@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, Dispatch, SetStateAction } from 'react';
 import { Workspace } from '../types';
 
 interface UseGlobalShortcutProps {
@@ -6,7 +6,7 @@ interface UseGlobalShortcutProps {
   minimizeToTray: boolean;
   isMinimized: boolean;
   setIsMinimized: (_val: boolean) => void;
-  setIsLauncherOpen: (_val: boolean) => void;
+  setIsLauncherOpen: Dispatch<SetStateAction<boolean>>;
   previewingWorkspace: Workspace | null;
   triggerToast: (
     title: string,
@@ -36,13 +36,17 @@ export function useGlobalShortcut({
           const { listen } = event;
           invoke('set_global_shortcut', { newShortcut: shortcutKey });
           invoke('set_minimize_to_tray', { value: minimizeToTray });
-          const unlisten = listen('open-launcher', () => {
+          const unlistenLauncher = listen('open-launcher', () => {
             console.log('open-launcher event received!');
             setIsMinimized(false);
-            setIsLauncherOpen(true);
+            setIsLauncherOpen((prev) => !prev);
+          });
+          const unlistenBlur = listen('tauri://blur', () => {
+            setIsLauncherOpen(false);
           });
           return () => {
-            unlisten.then((fn) => fn());
+            unlistenLauncher.then((fn) => fn());
+            unlistenBlur.then((fn) => fn());
           };
         })
         .catch((e) =>
@@ -86,8 +90,10 @@ export function useGlobalShortcut({
             'Main window maximized from system tray.',
             'info'
           );
+          setIsLauncherOpen(true);
+        } else {
+          setIsLauncherOpen((prev) => !prev);
         }
-        setIsLauncherOpen(true);
       }
     };
 

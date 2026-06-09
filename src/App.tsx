@@ -128,6 +128,21 @@ export default function App() {
     initWizardState();
   }, []);
 
+  useEffect(() => {
+    async function fetchApps() {
+      if (typeof window !== 'undefined' && '__TAURI__' in window) {
+        try {
+          const { invoke } = await import('@tauri-apps/api/core');
+          const installedApps = await invoke('get_installed_apps');
+          setApps(installedApps as InstalledApp[]);
+        } catch (e) {
+          console.error('Failed to fetch installed apps', e);
+        }
+      }
+    }
+    fetchApps();
+  }, []);
+
   const [previewingWorkspace, setPreviewingWorkspace] =
     useState<Workspace | null>(null);
   const [previewSecondsLeft, setPreviewSecondsLeft] = useState(4);

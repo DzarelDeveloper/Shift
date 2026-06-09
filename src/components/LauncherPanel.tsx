@@ -148,7 +148,7 @@ export default function LauncherPanel({
           />
           <button
             onClick={onClose}
-            className='p-1 rounded transition-colors'
+            className='px-2 py-1 flex items-center gap-1.5 rounded transition-colors text-[10px] font-mono'
             style={{
               color: 'var(--text-color)',
               opacity: 0.6,
@@ -164,7 +164,8 @@ export default function LauncherPanel({
               e.currentTarget.style.opacity = '0.6';
             }}
           >
-            <X className='w-4 h-4' />
+            <span>ESC</span>
+            <X className='w-3.5 h-3.5' />
           </button>
         </div>
 
