@@ -22,8 +22,12 @@ interface AppInfoCardProps {
   className?: string;
 }
 
-export function AppInfoCard({ compact = false, className = '' }: AppInfoCardProps) {
-  const { name, version, description, author, website, isLoading } = useAppInfo();
+export function AppInfoCard({
+  compact = false,
+  className = '',
+}: AppInfoCardProps) {
+  const { name, version, description, author, website, isLoading } =
+    useAppInfo();
 
   if (compact) {
     return (
@@ -73,7 +77,8 @@ export function AppInfoCard({ compact = false, className = '' }: AppInfoCardProp
           className='p-3 rounded-xl border'
           style={{
             backgroundColor: 'var(--card-bg)',
-            borderColor: 'color-mix(in srgb, var(--border-color) 60%, transparent)',
+            borderColor:
+              'color-mix(in srgb, var(--border-color) 60%, transparent)',
           }}
         >
           <span
@@ -95,7 +100,8 @@ export function AppInfoCard({ compact = false, className = '' }: AppInfoCardProp
           className='p-3 rounded-xl border'
           style={{
             backgroundColor: 'var(--card-bg)',
-            borderColor: 'color-mix(in srgb, var(--border-color) 60%, transparent)',
+            borderColor:
+              'color-mix(in srgb, var(--border-color) 60%, transparent)',
           }}
         >
           <span
@@ -117,7 +123,8 @@ export function AppInfoCard({ compact = false, className = '' }: AppInfoCardProp
           className='p-3 rounded-xl border'
           style={{
             backgroundColor: 'var(--card-bg)',
-            borderColor: 'color-mix(in srgb, var(--border-color) 60%, transparent)',
+            borderColor:
+              'color-mix(in srgb, var(--border-color) 60%, transparent)',
           }}
         >
           <span

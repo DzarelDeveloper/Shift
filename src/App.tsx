@@ -86,11 +86,14 @@ export default function App() {
   const isMainWindow = windowLabel === 'main';
   const isLauncherWindow = windowLabel === 'launcher';
 
-  const { data: workspaces, setData: setWorkspaces, isLoaded: workspacesLoaded } = useDataStore<Workspace[]>(
-    'workspaces.json',
-    DEFAULT_WORKSPACES,
-    { autoSave: true, parseRawApp: false }
-  );
+  const {
+    data: workspaces,
+    setData: setWorkspaces,
+    isLoaded: workspacesLoaded,
+  } = useDataStore<Workspace[]>('workspaces.json', DEFAULT_WORKSPACES, {
+    autoSave: true,
+    parseRawApp: false,
+  });
 
   useEffect(() => {
     if (workspacesLoaded) {
@@ -98,10 +101,20 @@ export default function App() {
     }
   }, [workspaces, workspacesLoaded]);
 
-  const { data: launchAtStartup, setData: setLaunchAtStartup } = useDataStore('settings_startup.json', true);
-  const { data: minimizeToTray, setData: setMinimizeToTray } = useDataStore('settings_tray.json', true);
-  const { data: shortcutKey, setData: setShortcutKey } = useDataStore('settings_shortcut.json', '');
-  const { data: autoBypassPreview, setData: setAutoBypassPreview } = useDataStore('settings_bypass.json', false);
+  const { data: launchAtStartup, setData: setLaunchAtStartup } = useDataStore(
+    'settings_startup.json',
+    true
+  );
+  const { data: minimizeToTray, setData: setMinimizeToTray } = useDataStore(
+    'settings_tray.json',
+    true
+  );
+  const { data: shortcutKey, setData: setShortcutKey } = useDataStore(
+    'settings_shortcut.json',
+    ''
+  );
+  const { data: autoBypassPreview, setData: setAutoBypassPreview } =
+    useDataStore('settings_bypass.json', false);
 
   const [isMinimized, setIsMinimized] = useState(false);
   const [isLauncherOpen, setIsLauncherOpen] = useState(false);
@@ -109,14 +122,16 @@ export default function App() {
 
   // Log whenever apps state updates
   useEffect(() => {
-    console.log("-----------------------------------------------------------");
-    console.log("📊 Apps STATE UPDATE!");
-    console.log("   📊 apps.length:", apps.length);
+    console.log('-----------------------------------------------------------');
+    console.log('📊 Apps STATE UPDATE!');
+    console.log('   📊 apps.length:', apps.length);
     if (apps.length > 0) {
-      console.log("   📊 First 10 apps in state:");
-      apps.slice(0,10).forEach((app, i) => console.log(`      #${i+1}`, app));
+      console.log('   📊 First 10 apps in state:');
+      apps
+        .slice(0, 10)
+        .forEach((app, i) => console.log(`      #${i + 1}`, app));
     }
-    console.log("-----------------------------------------------------------");
+    console.log('-----------------------------------------------------------');
   }, [apps]);
 
   // Version is read once from Tauri via useAppInfo (single source of truth).
@@ -142,51 +157,50 @@ export default function App() {
   }, [currentVersion]);
 
   useEffect(() => {
-    console.log("----------------------------------------");
-    console.log("📋 App.tsx: fetchApps useEffect RUNNING!");
-    console.log("   🔹 windowLabel:", windowLabel);
-    console.log("   🔹 isMainWindow:", windowLabel === "main");
-    console.log("   🔹 __TAURI__ in window?", "__TAURI__" in window);
-    console.log("----------------------------------------");
-    
+    console.log('----------------------------------------');
+    console.log('📋 App.tsx: fetchApps useEffect RUNNING!');
+    console.log('   🔹 windowLabel:', windowLabel);
+    console.log('   🔹 isMainWindow:', windowLabel === 'main');
+    console.log('   🔹 __TAURI__ in window?', '__TAURI__' in window);
+    console.log('----------------------------------------');
+
     async function fetchApps() {
-      console.log("🚀 fetchApps() CALLED!");
-      if (windowLabel !== "main") {
-        console.log("❌ Not main window, SKIPPING fetch!");
+      console.log('🚀 fetchApps() CALLED!');
+      if (windowLabel !== 'main') {
+        console.log('❌ Not main window, SKIPPING fetch!');
         return;
       }
-      console.log("✅ Main window confirmed, proceeding!");
-      
+      console.log('✅ Main window confirmed, proceeding!');
+
       if (typeof window !== 'undefined' && '__TAURI__' in window) {
         try {
           console.log("📞 Calling Tauri's get_installed_apps()...");
           const { invoke } = await import('@tauri-apps/api/core');
           const installedAppsRaw = await invoke('get_installed_apps');
-          console.log("✅ Tauri invoke SUCCESS!");
-          console.log("   📦 Raw data type:", typeof installedAppsRaw);
-          console.log("   📦 Raw data:", installedAppsRaw);
-          
+          console.log('✅ Tauri invoke SUCCESS!');
+          console.log('   📦 Raw data type:', typeof installedAppsRaw);
+          console.log('   📦 Raw data:', installedAppsRaw);
+
           const installedApps = installedAppsRaw as InstalledApp[];
-          
-          console.log("🔍 Installed apps type:", typeof installedApps);
-          console.log("🔍 Is Array?", Array.isArray(installedApps));
-          console.log("🔍 Apps length:", installedApps.length);
-          
+
+          console.log('🔍 Installed apps type:', typeof installedApps);
+          console.log('🔍 Is Array?', Array.isArray(installedApps));
+          console.log('🔍 Apps length:', installedApps.length);
+
           if (Array.isArray(installedApps) && installedApps.length > 0) {
-            console.log("📋 First 10 apps:");
+            console.log('📋 First 10 apps:');
             installedApps.slice(0, 10).forEach((app, i) => {
-              console.log(`   #${i+1}:`, app);
+              console.log(`   #${i + 1}:`, app);
             });
           }
-          
-          console.log("💾 Calling setApps with this data!");
+
+          console.log('💾 Calling setApps with this data!');
           setApps(installedApps);
-          
         } catch (e) {
-          console.error("❌ Failed to fetch installed apps! Error:", e);
+          console.error('❌ Failed to fetch installed apps! Error:', e);
         }
       } else {
-        console.log("❌ Not in Tauri environment, SKIPPING fetch!");
+        console.log('❌ Not in Tauri environment, SKIPPING fetch!');
       }
     }
     fetchApps();

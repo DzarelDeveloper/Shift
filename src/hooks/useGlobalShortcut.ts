@@ -42,10 +42,12 @@ export function useGlobalShortcut({
       import('@tauri-apps/api/core')
         .then(({ invoke }) => {
           invoke('set_global_shortcut', { newShortcut: shortcutKey }).catch(
-            (e: unknown) => console.error('[Shortcut] set_global_shortcut failed:', e)
+            (e: unknown) =>
+              console.error('[Shortcut] set_global_shortcut failed:', e)
           );
           invoke('set_minimize_to_tray', { value: minimizeToTray }).catch(
-            (e: unknown) => console.error('[Shortcut] set_minimize_to_tray failed:', e)
+            (e: unknown) =>
+              console.error('[Shortcut] set_minimize_to_tray failed:', e)
           );
         })
         .catch((e) =>

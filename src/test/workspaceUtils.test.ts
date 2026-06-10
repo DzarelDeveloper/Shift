@@ -5,6 +5,7 @@ import {
   checkWorkspaceHealth,
 } from '../utils/workspaceUtils';
 import { Workspace } from '../types';
+import { APP_CONFIG } from '../config/app';
 
 describe('workspaceUtils', () => {
   const dummyWorkspaces: Workspace[] = [
@@ -31,7 +32,7 @@ describe('workspaceUtils', () => {
       const json = createExportData(dummyWorkspaces, dummyPreferences);
       const parsed = JSON.parse(json);
 
-      expect(parsed.version).toBe('0.4.0');
+      expect(parsed.version).toBe(APP_CONFIG.fallbackVersion);
       expect(parsed.exportedAt).toBeDefined();
       expect(parsed.workspaces).toEqual(dummyWorkspaces);
       expect(parsed.preferences).toEqual(dummyPreferences);
@@ -41,7 +42,7 @@ describe('workspaceUtils', () => {
   describe('parseImportData', () => {
     it('should successfully parse valid export data', () => {
       const validData = {
-        version: '0.4.0',
+        version: APP_CONFIG.fallbackVersion,
         exportedAt: '2023-01-01T00:00:00Z',
         workspaces: dummyWorkspaces,
         preferences: dummyPreferences,

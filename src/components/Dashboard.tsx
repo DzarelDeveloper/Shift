@@ -270,9 +270,6 @@ export default function Dashboard({
     }
   };
 
-  
-
-
   // Selected workspace in detailed workspaces configurations view
   const [selectedExportWorkspace, setSelectedExportWorkspace] =
     useState<string>(workspaces[0]?.id || '');
@@ -1642,7 +1639,10 @@ export default function Dashboard({
                   <button
                     type='button'
                     onClick={() => {
-                      console.log('[Apps] Loaded from context — count:', apps.length);
+                      console.log(
+                        '[Apps] Loaded from context — count:',
+                        apps.length
+                      );
                     }}
                     className='px-3 py-1.5 rounded text-xs flex items-center gap-1 transition-all cursor-pointer hover:opacity-90'
                     style={{

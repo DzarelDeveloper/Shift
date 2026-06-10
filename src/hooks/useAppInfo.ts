@@ -28,8 +28,7 @@ export interface AppInfo {
   isLoading: boolean;
 }
 
-const isTauri =
-  typeof window !== 'undefined' && '__TAURI__' in window;
+const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
 
 export function useAppInfo(): AppInfo {
   const [version, setVersion] = useState<string>(APP_CONFIG.fallbackVersion);

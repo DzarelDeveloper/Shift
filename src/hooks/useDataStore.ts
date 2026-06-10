@@ -18,7 +18,10 @@ export function useDataStore<T>(
           setData(JSON.parse(item));
         }
       } catch (e) {
-        console.error(`[DataStore] LocalStorage load failed for ${filename}:`, e);
+        console.error(
+          `[DataStore] LocalStorage load failed for ${filename}:`,
+          e
+        );
       }
       setIsLoaded(true);
       return;
@@ -26,10 +29,11 @@ export function useDataStore<T>(
 
     try {
       const { appDataDir } = await import('@tauri-apps/api/path');
-      const { readTextFile, exists, mkdir } = await import('@tauri-apps/plugin-fs');
+      const { readTextFile, exists, mkdir } =
+        await import('@tauri-apps/plugin-fs');
 
       const dirPath = await appDataDir();
-      
+
       // Ensure directory exists
       const dirExists = await exists(dirPath);
       if (!dirExists) {
@@ -46,7 +50,10 @@ export function useDataStore<T>(
           setData(parsed);
           console.log(`[${filename.split('.')[0]} Loaded] successfully`);
         } catch (parseError) {
-          console.error(`[DataStore] JSON parse error for ${filename}, falling back to default:`, parseError);
+          console.error(
+            `[DataStore] JSON parse error for ${filename}, falling back to default:`,
+            parseError
+          );
           setData(defaultValue); // Fallback on corruption
         }
       } else {
@@ -64,12 +71,15 @@ export function useDataStore<T>(
     async (newDataOrUpdater: React.SetStateAction<T>) => {
       let newData: T;
       setData((prev) => {
-        newData = typeof newDataOrUpdater === 'function' ? (newDataOrUpdater as (prevState: T) => T)(prev) : newDataOrUpdater;
+        newData =
+          typeof newDataOrUpdater === 'function'
+            ? (newDataOrUpdater as (prevState: T) => T)(prev)
+            : newDataOrUpdater;
         return newData;
       });
 
       // Wait for next tick so newData is evaluated
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       if (typeof window === 'undefined' || !('__TAURI__' in window)) {
         window.localStorage.setItem(filename, JSON.stringify(newData));
@@ -78,10 +88,11 @@ export function useDataStore<T>(
 
       try {
         const { appDataDir } = await import('@tauri-apps/api/path');
-        const { writeTextFile, exists, mkdir } = await import('@tauri-apps/plugin-fs');
+        const { writeTextFile, exists, mkdir } =
+          await import('@tauri-apps/plugin-fs');
 
         const dirPath = await appDataDir();
-        
+
         // Ensure directory exists
         const dirExists = await exists(dirPath);
         if (!dirExists) {
@@ -115,9 +126,14 @@ export function useDataStore<T>(
         import('@tauri-apps/plugin-fs').then(({ writeTextFile }) => {
           appDataDir().then((dirPath) => {
             const filePath = `${dirPath}/${filename}`;
-            writeTextFile(filePath, JSON.stringify(data, null, 2)).catch(e => {
-              console.error(`[DataStore] Auto-save failed for ${filename}:`, e);
-            });
+            writeTextFile(filePath, JSON.stringify(data, null, 2)).catch(
+              (e) => {
+                console.error(
+                  `[DataStore] Auto-save failed for ${filename}:`,
+                  e
+                );
+              }
+            );
           });
         });
       });
