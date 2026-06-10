@@ -27,7 +27,7 @@ export const APP_CONFIG = {
    * Fallback version used only in browser dev-mode (no Tauri runtime).
    * The live app always reads the real version from Tauri via `useAppInfo`.
    */
-  fallbackVersion: '0.5.7',
+  fallbackVersion: '0.5.8',
 
   /** Author / company information */
   author: 'Muhamad Dzarel Alghifari',
