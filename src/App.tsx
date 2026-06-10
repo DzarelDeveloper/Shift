@@ -49,6 +49,7 @@ interface AppContextType {
   exportWorkspaces: () => void;
   importWorkspaces: (file: File) => Promise<void>;
   apps: InstalledApp[];
+  setApps: React.Dispatch<React.SetStateAction<InstalledApp[]>>;
   triggerToast: (
     title: string,
     desc: string,
@@ -431,6 +432,7 @@ export default function App() {
           exportWorkspaces,
           importWorkspaces,
           apps,
+          setApps,
           triggerToast,
         }}
       >
@@ -493,6 +495,7 @@ export default function App() {
         exportWorkspaces,
         importWorkspaces,
         apps,
+        setApps,
         triggerToast,
       }}
     >

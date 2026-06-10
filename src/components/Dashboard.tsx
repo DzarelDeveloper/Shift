@@ -59,6 +59,7 @@ import {
   ThemeConfig,
   RawInstalledApp,
   RawSystemInfo,
+  InstalledApp,
 } from '../types';
 import {
   generateWindowsPowershell,
@@ -110,7 +111,7 @@ export default function Dashboard({
   setIsMinimized,
   triggerToast,
 }: DashboardProps) {
-  const { theme, setTheme, exportWorkspaces, importWorkspaces, apps } =
+  const { theme, setTheme, exportWorkspaces, importWorkspaces, apps, setApps } =
     useAppContext();
   const [appsLoading] = useState(false);
   const { version: appVersion } = useAppInfo();
@@ -206,12 +207,23 @@ export default function Dashboard({
       import('@tauri-apps/api/core'),
       import('@tauri-apps/api/event'),
     ])
-      .then(([core, event]) => {
+      .then(async ([core, event]) => {
         console.log('Successfully imported core and event!');
         const { invoke } = core;
         const { listen } = event;
-        // apps loaded via context - no need to invoke again
-          ;
+        console.log('Calling get_installed_apps... NOW!');
+        // Fetch apps directly from Dashboard to test!
+        try {
+          const installedApps = await invoke('get_installed_apps');
+          console.log('Successfully got get_installed_apps:');
+          console.log('apps:', installedApps);
+          console.log('apps.length:', (installedApps as any[]).length);
+
+          // Now set it to the context!
+          setApps(installedApps as InstalledApp[]);
+        } catch (e) {
+          console.error('get_installed_apps ERROR:', e);
+        }
         console.log('Calling get_system_info...');
         // Fetch system info
         invoke('get_system_info')
@@ -238,7 +250,25 @@ export default function Dashboard({
     };
     window.addEventListener('switch-tab', handleSwitchTab);
     return () => window.removeEventListener('switch-tab', handleSwitchTab);
-  }, []);
+  }, [setApps]); // Add setApps as dependency!
+
+  const handleManualFetchApps = async () => {
+    console.log('handleManualFetchApps clicked!');
+    if (typeof window !== 'undefined' && '__TAURI__' in window) {
+      try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        console.log('Calling get_installed_apps MANUALLY!');
+        const installedApps = await invoke('get_installed_apps');
+        console.log('MANUAL get_installed_apps result:');
+        console.log('apps:', installedApps);
+        console.log('apps.length:', (installedApps as any[]).length);
+        // Save to context!
+        setApps(installedApps as InstalledApp[]);
+      } catch (e) {
+        console.error('MANUAL fetch error:', e);
+      }
+    }
+  };
 
   
 
@@ -1035,6 +1065,17 @@ export default function Dashboard({
                 )}
               </div>
 
+              <button
+                onClick={handleManualFetchApps}
+                className='w-full py-4 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 text-sm font-semibold transition-all group cursor-pointer hover:opacity-90 hover:border-accent'
+                style={{
+                  borderColor: 'var(--border-color)',
+                  color: 'var(--text-color)',
+                }}
+              >
+                <RefreshCw className='w-5 h-5 group-hover:text-accent transition-colors' />
+                <span>MANUALLY FETCH INSTALLED APPS</span>
+              </button>
               {/* BOTTOM: Create Workspace Button */}
               <button
                 onClick={handleStartCreate}
