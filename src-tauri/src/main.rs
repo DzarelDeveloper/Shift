@@ -473,16 +473,7 @@ fn set_minimize_to_tray(value: bool, state: tauri::State<AppState>) {
     *state.minimize_to_tray.lock().unwrap() = value;
 }
 
-fn get_default_shortcut() -> &'static str {
-    #[cfg(target_os = "macos")]
-    {
-        "Cmd+Opt+Space"
-    }
-    #[cfg(any(target_os = "windows", target_os = "linux"))]
-    {
-        "Ctrl+Alt+Space"
-    }
-}
+
 
 #[tauri::command]
 fn set_global_shortcut(
@@ -655,7 +646,7 @@ fn main() {
             // update the launcher binding when the user changes settings.
             let _ = set_global_shortcut(
                 app.handle().clone(),
-                get_default_shortcut().to_string(),
+                get_default_launcher_shortcut().to_string(),
                 app.state(),
             );
 
