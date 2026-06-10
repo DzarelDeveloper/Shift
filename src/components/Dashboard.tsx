@@ -329,7 +329,6 @@ export default function Dashboard({
   // Form input field state
   const [formName, setFormName] = useState('');
   const [formDesc, setFormDesc] = useState('');
-  const [formShortcut, setFormShortcut] = useState('');
   const [formApps, setFormApps] = useState<AppConfig[]>([]);
   const [formLinks, setFormLinks] = useState<WebsiteConfig[]>([]);
   const [formFolders, setFormFolders] = useState<FolderConfig[]>([]);
@@ -346,7 +345,6 @@ export default function Dashboard({
   const handleStartCreate = () => {
     setFormName('');
     setFormDesc('');
-    setFormShortcut('');
     setFormApps([]);
     setFormLinks([]);
     setFormFolders([]);
@@ -365,7 +363,6 @@ export default function Dashboard({
     setEditingWorkspace(ws);
     setFormName(ws.name);
     setFormDesc(ws.description);
-    setFormShortcut(ws.shortcut || '');
     setFormApps([...ws.applications]);
     setFormLinks([...ws.websites]);
     setFormFolders([...ws.folders]);
@@ -393,7 +390,6 @@ export default function Dashboard({
       applications: formApps,
       websites: formLinks,
       folders: formFolders,
-      shortcut: formShortcut.trim() || '',
     };
 
     if (isCreatingNew) {
@@ -1464,6 +1460,11 @@ export default function Dashboard({
                               downloadScript(
                                 codeStr,
                                 `${exportWsObj.name.toLowerCase().replace(/\s+/g, '_')}.${ext}`
+                              );
+                              triggerToast(
+                                'Script Downloaded',
+                                'Workspace script saved to your downloads folder.',
+                                'success'
                               );
                             }}
                             className='flex-1 py-1.5 rounded text-xs flex items-center justify-center gap-1 transition-all cursor-pointer hover:opacity-90'
@@ -3015,9 +3016,9 @@ export default function Dashboard({
                 onSubmit={handleSaveWorkspaceForm}
                 className='p-6 space-y-5 max-h-[75vh] overflow-y-auto'
               >
-                {/* Name & Hotkey */}
-                <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
-                  <div className='col-span-2'>
+                {/* Name */}
+                <div className='grid grid-cols-1 gap-4'>
+                  <div>
                     <label className='block text-[10px] font-mono uppercase font-bold tracking-wider text-zinc-550 mb-1.5'>
                       Workspace Profile Name
                     </label>
@@ -3027,18 +3028,6 @@ export default function Dashboard({
                       placeholder='e.g. Coding Mode'
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className='block text-[10px] font-mono uppercase font-bold tracking-wider text-zinc-550 mb-1.5'>
-                      Hotkey Trigger
-                    </label>
-                    <input
-                      type='text'
-                      className='w-full bg-zinc-900/50 border border-zinc-900 text-xs px-3 py-2 rounded-lg focus:outline-none focus:border-zinc-800 font-mono text-zinc-100'
-                      placeholder='e.g. Alt+C'
-                      value={formShortcut}
-                      onChange={(e) => setFormShortcut(e.target.value)}
                     />
                   </div>
                 </div>
