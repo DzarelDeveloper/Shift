@@ -1,4 +1,4 @@
-import { useEffect, Dispatch, SetStateAction } from 'react';
+import { useEffect } from 'react';
 import { Workspace } from '../types';
 
 interface UseGlobalShortcutProps {
@@ -6,7 +6,6 @@ interface UseGlobalShortcutProps {
   minimizeToTray: boolean;
   isMinimized: boolean;
   setIsMinimized: (_val: boolean) => void;
-  setIsLauncherOpen: Dispatch<SetStateAction<boolean>>;
   previewingWorkspace: Workspace | null;
   triggerToast: (
     title: string,
@@ -26,7 +25,6 @@ export function useGlobalShortcut({
   minimizeToTray,
   isMinimized,
   setIsMinimized,
-  setIsLauncherOpen,
   previewingWorkspace,
   triggerToast,
   enabled = true,
@@ -91,9 +89,6 @@ export function useGlobalShortcut({
             'Main window maximized from system tray.',
             'info'
           );
-          setIsLauncherOpen(true);
-        } else {
-          setIsLauncherOpen((prev) => !prev);
         }
       }
     };
@@ -109,6 +104,5 @@ export function useGlobalShortcut({
     previewingWorkspace,
     triggerToast,
     setIsMinimized,
-    setIsLauncherOpen,
   ]);
 }

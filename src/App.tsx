@@ -117,7 +117,6 @@ export default function App() {
     useDataStore('settings_bypass.json', false);
 
   const [isMinimized, setIsMinimized] = useState(false);
-  const [isLauncherOpen, setIsLauncherOpen] = useState(false);
   const [apps, setApps] = useState<InstalledApp[]>([]);
 
   // Log whenever apps state updates AND send to launcher window via event
@@ -259,7 +258,6 @@ export default function App() {
     minimizeToTray,
     isMinimized,
     setIsMinimized,
-    setIsLauncherOpen,
     previewingWorkspace,
     triggerToast,
     enabled: isMainWindow,
@@ -397,39 +395,7 @@ export default function App() {
     }
   }, [previewingWorkspace, previewSecondsLeft, previewAutoTimerActive]);
 
-  const handleLaunchItem = useCallback(
-    async (item: {
-      type: 'workspace' | 'app';
-      data: Workspace | InstalledApp;
-    }) => {
-      setIsLauncherOpen(false);
-      if (item.type === 'workspace') {
-        const workspace = item.data as Workspace;
-        if (autoBypassPreview) {
-          executeWorkspacePipeline(workspace);
-        } else {
-          setPreviewingWorkspace(workspace);
-          setPreviewSecondsLeft(4);
-          setPreviewAutoTimerActive(true);
-        }
-      } else {
-        const app = item.data as InstalledApp;
-        try {
-          const { invoke } = await import('@tauri-apps/api/core');
-          await invoke('launch_application', { path: app.path });
-          triggerToast(
-            'App Launched',
-            `${app.name} has been opened!`,
-            'success'
-          );
-        } catch (e) {
-          console.error('Failed to launch app:', e);
-          triggerToast('Launch Failed', `Could not open ${app.name}`, 'info');
-        }
-      }
-    },
-    [autoBypassPreview, executeWorkspacePipeline, triggerToast]
-  );
+
 
   const handleLaunchWorkspace = useCallback(
     (workspace: Workspace) => {
@@ -616,28 +582,6 @@ export default function App() {
           workspaces={workspaces}
           onRestore={() => setIsMinimized(false)}
           onLaunchWorkspace={handleLaunchWorkspace}
-        />
-
-        <LauncherPanel
-          isOpen={isLauncherOpen}
-          onClose={() => setIsLauncherOpen(false)}
-          workspaces={workspaces}
-          apps={apps}
-          onLaunch={handleLaunchItem}
-          onOpenDashboard={() => {
-            setIsLauncherOpen(false);
-            setIsMinimized(false);
-            window.dispatchEvent(
-              new window.CustomEvent('switch-tab', { detail: 'home' })
-            );
-          }}
-          onOpenSettings={() => {
-            setIsLauncherOpen(false);
-            setIsMinimized(false);
-            window.dispatchEvent(
-              new window.CustomEvent('switch-tab', { detail: 'settings' })
-            );
-          }}
         />
 
         <LaunchEnvironmentPreviewModal
