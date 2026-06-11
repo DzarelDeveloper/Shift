@@ -120,7 +120,7 @@ export default function App() {
   const [isLauncherOpen, setIsLauncherOpen] = useState(false);
   const [apps, setApps] = useState<InstalledApp[]>([]);
 
-  // Log whenever apps state updates
+  // Log whenever apps state updates AND send to launcher window via event
   useEffect(() => {
     console.log('-----------------------------------------------------------');
     console.log('📊 Apps STATE UPDATE!');
@@ -132,7 +132,23 @@ export default function App() {
         .forEach((app, i) => console.log(`      #${i + 1}`, app));
     }
     console.log('-----------------------------------------------------------');
-  }, [apps]);
+
+    // Send updated apps to launcher window via Tauri event
+    if (isTauri && isMainWindow) {
+      import('@tauri-apps/api/event').then(({ emit }) => {
+        emit('shift://apps-updated', apps);
+      });
+    }
+  }, [apps, isMainWindow]);
+
+  // Send updated workspaces to launcher window whenever they change
+  useEffect(() => {
+    if (isTauri && isMainWindow) {
+      import('@tauri-apps/api/event').then(({ emit }) => {
+        emit('shift://workspaces-updated', workspaces);
+      });
+    }
+  }, [workspaces, isMainWindow]);
 
   // Version is read once from Tauri via useAppInfo (single source of truth).
   const { version: currentVersion } = useAppInfo();
@@ -428,6 +444,25 @@ export default function App() {
     [autoBypassPreview, executeWorkspacePipeline]
   );
 
+  // Listen for launch workspace events from the launcher window
+  useEffect(() => {
+    if (!isTauri || !isMainWindow) return;
+
+    let unlistenLaunchWorkspace: (() => void) | null = null;
+    
+    import('@tauri-apps/api/event').then(({ listen }) => {
+      listen('shift://launch-workspace', (event) => {
+        console.log('[Main] Received launch workspace event:', event.payload);
+        const workspace = event.payload as Workspace;
+        handleLaunchWorkspace(workspace);
+      }).then((fn) => { unlistenLaunchWorkspace = fn; });
+    });
+
+    return () => {
+      if (unlistenLaunchWorkspace) unlistenLaunchWorkspace();
+    };
+  }, [isMainWindow, handleLaunchWorkspace]);
+
   // While we're waiting for the window label to resolve, render nothing.
   // This prevents the launcher window from flashing the Dashboard UI and,
   // critically, from running Tauri-backend calls that belong only to main.
@@ -436,66 +471,107 @@ export default function App() {
   }
 
   if (isLauncherWindow) {
+    const [launcherWorkspaces, setLauncherWorkspaces] = useState<Workspace[]>([]);
+    const [launcherApps, setLauncherApps] = useState<InstalledApp[]>([]);
+
+    // Listen for apps and workspaces updates from main window
+    useEffect(() => {
+      if (!isTauri) return;
+      
+      let unlistenApps: (() => void) | null = null;
+      let unlistenWorkspaces: (() => void) | null = null;
+      
+      import('@tauri-apps/api/event').then(({ listen }) => {
+        listen('shift://apps-updated', (event) => {
+          console.log('[Launcher] Received apps update:', event.payload);
+          setLauncherApps(event.payload as InstalledApp[]);
+        }).then((fn) => { unlistenApps = fn; });
+
+        listen('shift://workspaces-updated', (event) => {
+          console.log('[Launcher] Received workspaces update:', event.payload);
+          setLauncherWorkspaces(event.payload as Workspace[]);
+        }).then((fn) => { unlistenWorkspaces = fn; });
+      });
+
+      return () => {
+        if (unlistenApps) unlistenApps();
+        if (unlistenWorkspaces) unlistenWorkspaces();
+      };
+    }, []);
+
+    // handle launch item specifically for launcher window
+    const handleLauncherLaunchItem = useCallback(async (item: {
+      type: 'workspace' | 'app';
+      data: Workspace | InstalledApp;
+    }) => {
+      if (isTauri) {
+        const { getCurrentWindow } = await import('@tauri-apps/api/window');
+        await getCurrentWindow().hide();
+      }
+      
+      if (item.type === 'app') {
+        const app = item.data as InstalledApp;
+        try {
+          const { invoke } = await import('@tauri-apps/api/core');
+          await invoke('launch_application', { path: app.path });
+        } catch (e) {
+          console.error('Failed to launch app:', e);
+        }
+      } else {
+        // For workspace, send event to main window to launch
+        if (isTauri) {
+          const { emit } = await import('@tauri-apps/api/event');
+          emit('shift://launch-workspace', item.data);
+        }
+      }
+    }, []);
+
     return (
-      <AppContext.Provider
-        value={{
-          workspaces,
-          setWorkspaces,
-          theme,
-          setTheme,
-          exportWorkspaces,
-          importWorkspaces,
-          apps,
-          setApps,
-          triggerToast,
-        }}
-      >
-        <div className='w-screen h-screen bg-transparent font-sans select-none overflow-hidden text-neutral-900 dark:text-neutral-100'>
-          <LauncherPanel
-            isOpen={true}
-            onClose={async () => {
-              if (isTauri) {
-                const { getCurrentWindow } =
-                  await import('@tauri-apps/api/window');
-                await getCurrentWindow().hide();
-                console.log('[Launcher Closed]');
+      <div className='w-screen h-screen bg-transparent font-sans select-none overflow-hidden text-neutral-900 dark:text-neutral-100'>
+        <LauncherPanel
+          isOpen={true}
+          onClose={async () => {
+            if (isTauri) {
+              const { getCurrentWindow } =
+                await import('@tauri-apps/api/window');
+              await getCurrentWindow().hide();
+              console.log('[Launcher Closed]');
+            }
+          }}
+          workspaces={launcherWorkspaces}
+          apps={launcherApps}
+          onLaunch={handleLauncherLaunchItem}
+          onOpenDashboard={async () => {
+            if (isTauri) {
+              const { getCurrentWindow, getAllWindows } =
+                await import('@tauri-apps/api/window');
+              await getCurrentWindow().hide();
+              const windows = await getAllWindows();
+              const mainWindow = windows.find((w) => w.label === 'main');
+              if (mainWindow) {
+                await mainWindow.show();
+                await mainWindow.unminimize();
+                await mainWindow.setFocus();
               }
-            }}
-            workspaces={workspaces}
-            apps={apps}
-            onLaunch={handleLaunchItem}
-            onOpenDashboard={async () => {
-              if (isTauri) {
-                const { getCurrentWindow, getAllWindows } =
-                  await import('@tauri-apps/api/window');
-                await getCurrentWindow().hide();
-                const windows = await getAllWindows();
-                const mainWindow = windows.find((w) => w.label === 'main');
-                if (mainWindow) {
-                  await mainWindow.show();
-                  await mainWindow.unminimize();
-                  await mainWindow.setFocus();
-                }
+            }
+          }}
+          onOpenSettings={async () => {
+            if (isTauri) {
+              const { getCurrentWindow, getAllWindows } =
+                await import('@tauri-apps/api/window');
+              await getCurrentWindow().hide();
+              const windows = await getAllWindows();
+              const mainWindow = windows.find((w) => w.label === 'main');
+              if (mainWindow) {
+                await mainWindow.show();
+                await mainWindow.unminimize();
+                await mainWindow.setFocus();
+                mainWindow.emit('open-settings');
               }
-            }}
-            onOpenSettings={async () => {
-              if (isTauri) {
-                const { getCurrentWindow, getAllWindows } =
-                  await import('@tauri-apps/api/window');
-                await getCurrentWindow().hide();
-                const windows = await getAllWindows();
-                const mainWindow = windows.find((w) => w.label === 'main');
-                if (mainWindow) {
-                  await mainWindow.show();
-                  await mainWindow.unminimize();
-                  await mainWindow.setFocus();
-                  mainWindow.emit('open-settings');
-                }
-              }
-            }}
-          />
-        </div>
-      </AppContext.Provider>
+            }
+          }}
+        />
+      </div>
     );
   }
 
