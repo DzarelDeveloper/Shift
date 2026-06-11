@@ -3,7 +3,7 @@
 > **Restore your workflow in seconds.**
 
 <p align="center">
-  <img src="https://i.pinimg.com/1200x/22/f9/8a/22f98ae57b18935a3a1905c169c6c940.jpg" alt="Shift Banner" width="100%">
+  <img src="https://raw.githubusercontent.com/DzarelDeveloper/BloggerImg/refs/heads/main/shift.png" alt="Shift Banner" width="100%">
 </p>
 
 <p align="center">
