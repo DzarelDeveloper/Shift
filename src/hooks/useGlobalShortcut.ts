@@ -64,7 +64,7 @@ export function useGlobalShortcut({
         if (isMac) {
           isTriggered = e.metaKey && e.altKey && e.key === ' ';
         } else {
-          isTriggered = e.ctrlKey && e.altKey && e.key === ' ';
+          isTriggered = e.ctrlKey && e.shiftKey && e.key === ' ';
         }
       } else if (shortcutKey === 'Ctrl+K') {
         isTriggered = (e.ctrlKey || e.metaKey) && keyUpper === 'K';
@@ -72,6 +72,8 @@ export function useGlobalShortcut({
         isTriggered = e.altKey && keyUpper === 'P';
       } else if (shortcutKey === 'Alt+Z') {
         isTriggered = e.altKey && keyUpper === 'Z';
+      } else if (shortcutKey === 'Ctrl+Shift+Space') {
+        isTriggered = e.ctrlKey && e.shiftKey && e.key === ' ';
       } else {
         isTriggered = (e.metaKey || e.ctrlKey) && keyUpper === 'K';
       }

@@ -38,7 +38,7 @@ fn get_default_launcher_shortcut() -> &'static str {
     }
     #[cfg(any(target_os = "windows", target_os = "linux"))]
     {
-        "Ctrl+Alt+Space"
+        "Ctrl+Shift+Space"
     }
 }
 
@@ -481,14 +481,17 @@ fn set_global_shortcut(
     new_shortcut: String,
     state: tauri::State<AppState>
 ) -> Result<(), String> {
+    eprintln!("[Shortcut] set_global_shortcut() CALLED with new_shortcut={:?}", new_shortcut);
     let mut launcher_guard = state.launcher_shortcut.lock().unwrap();
     let mut dashboard_guard = state.dashboard_shortcut.lock().unwrap();
 
     // Unregister old shortcuts
     if let Some(old_launcher) = launcher_guard.take() {
+        eprintln!("[Shortcut] Unregistering old launcher shortcut: {:?}", old_launcher);
         let _ = app_handle.global_shortcut().unregister(old_launcher);
     }
     if let Some(old_dashboard) = dashboard_guard.take() {
+        eprintln!("[Shortcut] Unregistering old dashboard shortcut: {:?}", old_dashboard);
         let _ = app_handle.global_shortcut().unregister(old_dashboard);
     }
 
@@ -499,12 +502,26 @@ fn set_global_shortcut(
     };
     
     let dashboard_str = get_default_dashboard_shortcut().to_string();
+    eprintln!("[Shortcut] Parsing: Launcher={}, Dashboard={}", launcher_str, dashboard_str);
 
-    let launcher_sc = launcher_str.parse::<Shortcut>().map_err(|e| e.to_string())?;
-    let dashboard_sc = dashboard_str.parse::<Shortcut>().map_err(|e| e.to_string())?;
+    let launcher_sc = launcher_str.parse::<Shortcut>().map_err(|e| {
+        eprintln!("[Shortcut ERROR] Failed to parse launcher shortcut '{}': {:?}", launcher_str, e);
+        e.to_string()
+    })?;
+    let dashboard_sc = dashboard_str.parse::<Shortcut>().map_err(|e| {
+        eprintln!("[Shortcut ERROR] Failed to parse dashboard shortcut '{}': {:?}", dashboard_str, e);
+        e.to_string()
+    })?;
 
-    app_handle.global_shortcut().register(launcher_sc.clone()).map_err(|e| e.to_string())?;
-    app_handle.global_shortcut().register(dashboard_sc.clone()).map_err(|e| e.to_string())?;
+    eprintln!("[Shortcut] Registering: Launcher={:?}, Dashboard={:?}", launcher_sc, dashboard_sc);
+    app_handle.global_shortcut().register(launcher_sc.clone()).map_err(|e| {
+        eprintln!("[Shortcut ERROR] Failed to register launcher shortcut: {:?}", e);
+        e.to_string()
+    })?;
+    app_handle.global_shortcut().register(dashboard_sc.clone()).map_err(|e| {
+        eprintln!("[Shortcut ERROR] Failed to register dashboard shortcut: {:?}", e);
+        e.to_string()
+    })?;
 
     *launcher_guard = Some(launcher_sc);
     *dashboard_guard = Some(dashboard_sc);
@@ -537,11 +554,15 @@ fn main() {
             let state: tauri::State<AppState> = app.state();
             let launcher_sc = state.launcher_shortcut.lock().unwrap().clone();
             let dashboard_sc = state.dashboard_shortcut.lock().unwrap().clone();
+            eprintln!("[Shortcut] State: launcher={:?}, dashboard={:?}", launcher_sc, dashboard_sc);
 
             if Some(*shortcut) == launcher_sc {
+                eprintln!("[Shortcut] It's a launcher shortcut!");
                 // Toggle the launcher window visibility – never create a new one.
                 if let Some(window) = app.get_webview_window("launcher") {
+                    eprintln!("[Shortcut] Found launcher window!");
                     if let Ok(is_visible) = window.is_visible() {
+                        eprintln!("[Shortcut] Launcher visible? {}", is_visible);
                         if is_visible {
                             let _ = window.hide();
                             eprintln!("[Launcher] Hidden");
@@ -551,11 +572,14 @@ fn main() {
                             let _ = window.set_focus();
                             eprintln!("[Launcher] Shown");
                         }
+                    } else {
+                        eprintln!("[Shortcut ERROR] Failed to check launcher window visibility");
                     }
                 } else {
                     eprintln!("[Launcher] ERROR: launcher window not found – it may have been destroyed.");
                 }
             } else if Some(*shortcut) == dashboard_sc {
+                eprintln!("[Shortcut] It's a dashboard shortcut!");
                 // Focus the existing main window – never create a new one.
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();
@@ -565,6 +589,8 @@ fn main() {
                 } else {
                     eprintln!("[Dashboard] ERROR: main window not found.");
                 }
+            } else {
+                eprintln!("[Shortcut] Unknown shortcut triggered: {:?}", shortcut);
             }
         }).build())
         .plugin(tauri_plugin_autostart::init(

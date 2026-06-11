@@ -764,7 +764,7 @@ export default function Dashboard({
                       Global Shortcut:
                     </span>
                     <kbd className='font-semibold'>
-                      {shortcutKey || 'Ctrl+Alt+Space'}
+                      {shortcutKey || 'Ctrl+Shift+Space'}
                     </kbd>
                   </div>
                 </div>
@@ -2429,7 +2429,7 @@ export default function Dashboard({
                             }}
                           >
                             <option value=''>
-                              Platform Default (Ctrl+Alt+Space / Cmd+Opt+Space)
+                              Platform Default (Ctrl+Shift+Space / Cmd+Opt+Space)
                             </option>
                             <option value='Ctrl+K'>
                               Ctrl + K (Vim / Slack style)
@@ -2438,6 +2438,7 @@ export default function Dashboard({
                               Alt + P / Cmd+Option+P
                             </option>
                             <option value='Alt+Z'>Alt + Z (Super Quick)</option>
+                            <option value='Ctrl+Shift+Space'>Ctrl + Shift + Space (Ubuntu-friendly)</option>
                           </select>
                         </div>
                       </div>
