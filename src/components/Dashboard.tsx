@@ -2429,7 +2429,7 @@ export default function Dashboard({
                             }}
                           >
                             <option value=''>
-                              Platform Default (Alt+Space / Cmd+Opt+Space)
+                              Platform Default (Ctrl+Alt+Space / Cmd+Opt+Space)
                             </option>
                             <option value='Ctrl+K'>
                               Ctrl + K (Vim / Slack style)
@@ -2482,7 +2482,7 @@ export default function Dashboard({
                                 color: 'var(--text-color)',
                               }}
                             >
-                              {shortcutKey || 'Alt+Space'}
+                              {shortcutKey || 'Ctrl+Alt+Space'}
                             </span>
                           </div>
                           <div
