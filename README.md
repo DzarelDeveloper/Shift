@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/DzarelDeveloper/shift/releases">
-    <img src="https://img.shields.io/badge/version-0.5.0-blue?style=for-the-badge&logo=github" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.6.0-blue?style=for-the-badge&logo=github" alt="Version">
   </a>
   <a href="https://github.com/DzarelDeveloper/shift/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge&logo=mit" alt="License">
