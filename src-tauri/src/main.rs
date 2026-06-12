@@ -260,6 +260,7 @@ fn get_installed_apps() -> Vec<AppInfo> {
         eprintln!("[DEBUG] Windows platform detected, starting scan...");
         use std::path::Path;
         use walkdir::WalkDir;
+        use lnk::ShellLink;
 
         let start_menu_dirs = [
             format!("{}\\Microsoft\\Windows\\Start Menu\\Programs", std::env::var("ProgramData").unwrap_or_else(|_| "C:\\ProgramData".to_string())),
@@ -287,13 +288,28 @@ fn get_installed_apps() -> Vec<AppInfo> {
                             skipped_count +=1;
                             continue;
                         }
-                        let path_str = entry_path.to_string_lossy().to_string();
-                        let id = format!("{}-{}", file_stem.replace(' ', "_"), path_str.replace(' ', "_"));
-                        eprintln!("[DEBUG] Adding Windows app to list: id={}, name={}, path={}", id, file_stem, path_str);
+                        
+                        let mut resolved_path = entry_path.to_string_lossy().to_string();
+                        
+                        // Try to resolve the .lnk shortcut target
+                        if let Ok(link) = ShellLink::open(entry_path) {
+                            if let Some(target) = link.relative_path() {
+                                if let Some(target_str) = target.to_str() {
+                                    resolved_path = target_str.to_string();
+                                }
+                            } else if let Some(target) = link.absolute_path() {
+                                if let Some(target_str) = target.to_str() {
+                                    resolved_path = target_str.to_string();
+                                }
+                            }
+                        }
+                        
+                        let id = format!("{}-{}", file_stem.replace(' ', "_"), resolved_path.replace(' ', "_"));
+                        eprintln!("[DEBUG] Adding Windows app to list: id={}, name={}, path={}", id, file_stem, resolved_path);
                         apps.push(AppInfo {
                             id,
                             name: file_stem.to_string(),
-                            path: path_str,
+                            path: resolved_path,
                             icon: None, // Icon extraction on Windows requires deeper native API integration
                         });
                         parsed_count +=1;
