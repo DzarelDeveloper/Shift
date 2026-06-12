@@ -475,6 +475,49 @@ fn set_minimize_to_tray(value: bool, state: tauri::State<AppState>) {
 
 
 
+fn map_shortcut_key(s: &str) -> String {
+    let parts: Vec<&str> = s.split('+').collect();
+    let mut mapped_parts = Vec::new();
+    
+    for part in parts {
+        match part.to_uppercase().as_str() {
+            "CTRL" => mapped_parts.push("Ctrl".to_string()),
+            "CONTROL" => mapped_parts.push("Ctrl".to_string()),
+            "ALT" => mapped_parts.push("Alt".to_string()),
+            "OPTION" => mapped_parts.push("Alt".to_string()),
+            "SHIFT" => mapped_parts.push("Shift".to_string()),
+            "CMD" => mapped_parts.push("Cmd".to_string()),
+            "META" => mapped_parts.push("Meta".to_string()),
+            "WIN" => mapped_parts.push("Meta".to_string()),
+            "SPACE" => mapped_parts.push("Space".to_string()),
+            "ENTER" => mapped_parts.push("Enter".to_string()),
+            "RETURN" => mapped_parts.push("Enter".to_string()),
+            "TAB" => mapped_parts.push("Tab".to_string()),
+            "ESCAPE" => mapped_parts.push("Escape".to_string()),
+            "ESC" => mapped_parts.push("Escape".to_string()),
+            "BACKSPACE" => mapped_parts.push("Backspace".to_string()),
+            "DELETE" => mapped_parts.push("Delete".to_string()),
+            "UP" => mapped_parts.push("ArrowUp".to_string()),
+            "DOWN" => mapped_parts.push("ArrowDown".to_string()),
+            "LEFT" => mapped_parts.push("ArrowLeft".to_string()),
+            "RIGHT" => mapped_parts.push("ArrowRight".to_string()),
+            "HOME" => mapped_parts.push("Home".to_string()),
+            "END" => mapped_parts.push("End".to_string()),
+            "PAGEUP" => mapped_parts.push("PageUp".to_string()),
+            "PAGEDOWN" => mapped_parts.push("PageDown".to_string()),
+            "F1" | "F2" | "F3" | "F4" | "F5" | "F6" | "F7" | "F8" | "F9" | "F10" | "F11" | "F12" => {
+                mapped_parts.push(part.to_string());
+            }
+            "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" => {
+                mapped_parts.push(format!("Key{}", part.to_uppercase()));
+            }
+            _ => mapped_parts.push(part.to_string()),
+        }
+    }
+    
+    mapped_parts.join("+")
+}
+
 #[tauri::command]
 fn set_global_shortcut(
     app_handle: AppHandle,
@@ -496,12 +539,12 @@ fn set_global_shortcut(
     }
 
     let launcher_str = if new_shortcut.is_empty() {
-        get_default_launcher_shortcut().to_string()
+        map_shortcut_key(get_default_launcher_shortcut())
     } else {
-        new_shortcut
+        map_shortcut_key(&new_shortcut)
     };
     
-    let dashboard_str = get_default_dashboard_shortcut().to_string();
+    let dashboard_str = map_shortcut_key(get_default_dashboard_shortcut());
     eprintln!("[Shortcut] Parsing: Launcher={}, Dashboard={}", launcher_str, dashboard_str);
 
     let launcher_sc = launcher_str.parse::<Shortcut>().map_err(|e| {
