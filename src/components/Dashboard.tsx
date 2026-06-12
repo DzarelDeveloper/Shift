@@ -49,6 +49,7 @@ import {
   Video,
   Wifi,
   Printer,
+  Github,
 } from 'lucide-react';
 import {
   Workspace,
@@ -2948,6 +2949,371 @@ export default function Dashboard({
                     <AppInfoCard />
                   </div>
                 </div>
+
+                {/* Latest Changes */}
+                <div
+                  className='p-6 rounded-2xl space-y-5 backdrop-blur-sm border'
+                  style={{
+                    backgroundColor:
+                      'color-mix(in srgb, var(--card-bg) 20%, transparent)',
+                    borderColor: 'var(--border-color)',
+                  }}
+                >
+                  <div className='flex items-center gap-3'>
+                    <div
+                      className='p-2.5 rounded-xl border'
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-color)',
+                      }}
+                    >
+                      <RefreshCw className='w-4 h-4 text-emerald-400' />
+                    </div>
+                    <div>
+                      <h3
+                        className='font-bold text-sm uppercase tracking-wider font-mono'
+                        style={{ color: 'var(--text-color)' }}
+                      >
+                        LATEST CHANGES
+                      </h3>
+                      <p
+                        className='text-[11px] mt-0.5'
+                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                      >
+                        Recent improvements and updates in this version.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className='pt-4 border-t space-y-3 text-xs'
+                    style={{
+                      borderColor:
+                        'color-mix(in srgb, var(--border-color) 60%, transparent)',
+                    }}
+                  >
+                    <ul className='space-y-2' style={{ color: 'var(--text-color)' }}>
+                      <li className='flex items-center gap-2'>
+                        <CheckCircle2 className='w-4 h-4 text-emerald-400' />
+                        <span>Improved workspace loading</span>
+                      </li>
+                      <li className='flex items-center gap-2'>
+                        <CheckCircle2 className='w-4 h-4 text-emerald-400' />
+                        <span>Better application detection</span>
+                      </li>
+                      <li className='flex items-center gap-2'>
+                        <CheckCircle2 className='w-4 h-4 text-emerald-400' />
+                        <span>Startup registration fixes</span>
+                      </li>
+                      <li className='flex items-center gap-2'>
+                        <CheckCircle2 className='w-4 h-4 text-emerald-400' />
+                        <span>Performance optimizations</span>
+                      </li>
+                    </ul>
+                    <button
+                      onClick={() => {
+                        window.open('https://github.com/DzarelDeveloper/Shift/releases', '_blank');
+                      }}
+                      className='mt-3 w-full sm:w-auto py-2 px-4 rounded-lg text-xs font-semibold border'
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-color)',
+                        color: 'var(--text-color)',
+                      }}
+                    >
+                      View Full Changelog
+                    </button>
+                  </div>
+                </div>
+
+                {/* Roadmap */}
+                <div
+                  className='p-6 rounded-2xl space-y-5 backdrop-blur-sm border'
+                  style={{
+                    backgroundColor:
+                      'color-mix(in srgb, var(--card-bg) 20%, transparent)',
+                    borderColor: 'var(--border-color)',
+                  }}
+                >
+                  <div className='flex items-center gap-3'>
+                    <div
+                      className='p-2.5 rounded-xl border'
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-color)',
+                      }}
+                    >
+                      <Sliders className='w-4 h-4 text-indigo-400' />
+                    </div>
+                    <div>
+                      <h3
+                        className='font-bold text-sm uppercase tracking-wider font-mono'
+                        style={{ color: 'var(--text-color)' }}
+                      >
+                        ROADMAP
+                      </h3>
+                      <p
+                        className='text-[11px] mt-0.5'
+                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                      >
+                        Features planned for upcoming releases.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className='pt-4 border-t space-y-3 text-xs'
+                    style={{
+                      borderColor:
+                        'color-mix(in srgb, var(--border-color) 60%, transparent)',
+                    }}
+                  >
+                    <ul className='space-y-2' style={{ color: 'var(--text-color)' }}>
+                      <li className='flex items-center gap-2'>
+                        <CheckCircle2 className='w-4 h-4 text-emerald-400' />
+                        <span>Workspace Management</span>
+                      </li>
+                      <li className='flex items-center gap-2'>
+                        <CheckCircle2 className='w-4 h-4 text-emerald-400' />
+                        <span>Application Launcher</span>
+                      </li>
+                      <li className='flex items-center gap-2'>
+                        <CheckCircle2 className='w-4 h-4 text-emerald-400' />
+                        <span>Auto Startup</span>
+                      </li>
+                      <li className='flex items-center gap-2'>
+                        <div className='w-4 h-4 rounded-full border-2 border-dashed border-zinc-600' />
+                        <span>Global Search</span>
+                      </li>
+                      <li className='flex items-center gap-2'>
+                        <div className='w-4 h-4 rounded-full border-2 border-dashed border-zinc-600' />
+                        <span>Workspace Templates</span>
+                      </li>
+                      <li className='flex items-center gap-2'>
+                        <div className='w-4 h-4 rounded-full border-2 border-dashed border-zinc-600' />
+                        <span>Plugin System</span>
+                      </li>
+                      <li className='flex items-center gap-2'>
+                        <div className='w-4 h-4 rounded-full border-2 border-dashed border-zinc-600' />
+                        <span>Cloud Sync</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Resources */}
+                <div
+                  className='p-6 rounded-2xl space-y-5 backdrop-blur-sm border'
+                  style={{
+                    backgroundColor:
+                      'color-mix(in srgb, var(--card-bg) 20%, transparent)',
+                    borderColor: 'var(--border-color)',
+                  }}
+                >
+                  <div className='flex items-center gap-3'>
+                    <div
+                      className='p-2.5 rounded-xl border'
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-color)',
+                      }}
+                    >
+                      <FileText className='w-4 h-4 text-amber-400' />
+                    </div>
+                    <div>
+                      <h3
+                        className='font-bold text-sm uppercase tracking-wider font-mono'
+                        style={{ color: 'var(--text-color)' }}
+                      >
+                        RESOURCES
+                      </h3>
+                      <p
+                        className='text-[11px] mt-0.5'
+                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                      >
+                        Useful links related to Shift.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className='pt-4 border-t grid grid-cols-1 sm:grid-cols-2 gap-3'
+                    style={{
+                      borderColor:
+                        'color-mix(in srgb, var(--border-color) 60%, transparent)',
+                    }}
+                  >
+                    <button
+                      onClick={() => {
+                        window.open('https://github.com/DzarelDeveloper/Shift', '_blank');
+                      }}
+                      className='p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all hover:opacity-90'
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-color)',
+                        color: 'var(--text-color)',
+                      }}
+                    >
+                      <Github className='w-4 h-4' />
+                      <span>GitHub Repository</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        window.open('https://github.com/DzarelDeveloper/Shift/wiki', '_blank');
+                      }}
+                      className='p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all hover:opacity-90'
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-color)',
+                        color: 'var(--text-color)',
+                      }}
+                    >
+                      <BookOpen className='w-4 h-4' />
+                      <span>Documentation</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        window.open('https://github.com/DzarelDeveloper/Shift/issues/new', '_blank');
+                      }}
+                      className='p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all hover:opacity-90'
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-color)',
+                        color: 'var(--text-color)',
+                      }}
+                    >
+                      <MessageSquare className='w-4 h-4' />
+                      <span>Report Issue</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        window.open('https://github.com/DzarelDeveloper/Shift/discussions/new', '_blank');
+                      }}
+                      className='p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all hover:opacity-90'
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-color)',
+                        color: 'var(--text-color)',
+                      }}
+                    >
+                      <RefreshCw className='w-4 h-4' />
+                      <span>Request Feature</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Project Information */}
+                <div
+                  className='p-6 rounded-2xl space-y-5 backdrop-blur-sm border'
+                  style={{
+                    backgroundColor:
+                      'color-mix(in srgb, var(--card-bg) 20%, transparent)',
+                    borderColor: 'var(--border-color)',
+                  }}
+                >
+                  <div className='flex items-center gap-3'>
+                    <div
+                      className='p-2.5 rounded-xl border'
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-color)',
+                      }}
+                    >
+                      <Code className='w-4 h-4 text-blue-400' />
+                    </div>
+                    <div>
+                      <h3
+                        className='font-bold text-sm uppercase tracking-wider font-mono'
+                        style={{ color: 'var(--text-color)' }}
+                      >
+                        PROJECT INFORMATION
+                      </h3>
+                      <p
+                        className='text-[11px] mt-0.5'
+                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                      >
+                        Technical and licensing information.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className='pt-4 border-t grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs'
+                    style={{
+                      borderColor:
+                        'color-mix(in srgb, var(--border-color) 60%, transparent)',
+                    }}
+                  >
+                    <div
+                      className='p-3 rounded-xl border'
+                      style={{
+                        backgroundColor: 'var(--bg-color)',
+                        borderColor:
+                          'color-mix(in srgb, var(--border-color) 60%, transparent)',
+                      }}
+                    >
+                      <span
+                        className='block font-mono text-[10px] mb-1'
+                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                      >
+                        LICENSE
+                      </span>
+                      <span
+                        className='font-semibold text-sm'
+                        style={{ color: 'var(--text-color)' }}
+                      >
+                        MIT License
+                      </span>
+                    </div>
+                    <div
+                      className='p-3 rounded-xl border'
+                      style={{
+                        backgroundColor: 'var(--bg-color)',
+                        borderColor:
+                          'color-mix(in srgb, var(--border-color) 60%, transparent)',
+                      }}
+                    >
+                      <span
+                        className='block font-mono text-[10px] mb-1'
+                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                      >
+                        BUILT WITH
+                      </span>
+                      <span
+                        className='font-semibold text-sm'
+                        style={{ color: 'var(--text-color)' }}
+                      >
+                        Tauri, React, TypeScript
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Creator Footer Enhancement */}
+              <div
+                className='p-4 rounded-xl border text-center'
+                style={{
+                  backgroundColor:
+                    'color-mix(in srgb, var(--card-bg) 10%, transparent)',
+                  borderColor: 'var(--border-color)',
+                }}
+              >
+                <p
+                  className='text-[11px] font-sans'
+                  style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                >
+                  Built by
+                </p>
+                <a
+                  href='https://github.com/DzarelDeveloper'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-sm font-semibold'
+                  style={{ color: 'var(--text-color)' }}
+                >
+                  Muhamad Dzarel Alghifari
+                </a>
               </div>
             </div>
           )}
