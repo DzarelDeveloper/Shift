@@ -6,21 +6,14 @@ import React, {
   useCallback,
 } from 'react';
 
-import {
-  Workspace,
-  ThemeConfig,
-  InstalledApp,
-  ShiftExportData,
-  RawInstalledApp,
-} from './types';
+import { Workspace, ThemeConfig, InstalledApp } from './types';
 import { DEFAULT_WORKSPACES } from './data/defaultWorkspaces';
 import { useTheme } from './hooks/useTheme';
-import { useLocalStorage } from './hooks/useLocalStorage';
 import { useDataStore } from './hooks/useDataStore';
 import Dashboard from './components/Dashboard';
 import OnboardingWizard from './components/OnboardingWizard';
 import UpdateWizard from './components/UpdateWizard';
-import LauncherPanel from './components/LauncherPanel';
+import { LauncherWindow } from './components/LauncherWindow';
 import { LaunchEnvironmentPreviewModal } from './components/LaunchEnvironmentPreviewModal';
 import { ExecutionOverlay } from './components/ExecutionOverlay';
 import { ToastNotification } from './components/ToastNotification';
@@ -256,10 +249,6 @@ export default function App() {
   useGlobalShortcut({
     shortcutKey,
     minimizeToTray,
-    isMinimized,
-    setIsMinimized,
-    previewingWorkspace,
-    triggerToast,
     enabled: isMainWindow,
   });
 
@@ -284,24 +273,60 @@ export default function App() {
     };
   }, [windowLabel]);
 
-  const exportWorkspaces = useCallback(() => {
-    const jsonString = createExportData(workspaces, {
-      launchAtStartup,
-      minimizeToTray,
-      shortcutKey,
-      autoBypassPreview,
-    });
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `shift-workspaces-${new Date().toISOString().slice(0, 10)}.shift`;
-    a.click();
-    URL.revokeObjectURL(url);
-    triggerToast(
-      'Export Successful',
-      'Your workspaces have been exported successfully!'
-    );
+  const exportWorkspaces = useCallback(async (): Promise<void> => {
+    try {
+      const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
+      const jsonString = createExportData(workspaces, {
+        launchAtStartup,
+        minimizeToTray,
+        shortcutKey,
+        autoBypassPreview,
+      });
+      const defaultFileName = `shift-workspaces-${new Date().toISOString().slice(0, 10)}.shift`;
+
+      if (isTauri) {
+        const { save } = await import('@tauri-apps/plugin-dialog');
+        const { writeTextFile } = await import('@tauri-apps/plugin-fs');
+
+        const filePath = await save({
+          defaultPath: defaultFileName,
+          filters: [
+            {
+              name: 'Shift Workspace',
+              extensions: ['shift', 'json'],
+            },
+          ],
+        });
+
+        if (filePath) {
+          await writeTextFile(filePath, jsonString);
+          triggerToast(
+            'Export Successful',
+            'Your workspaces have been exported successfully!'
+          );
+        }
+      } else {
+        // Fallback for browser dev mode
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = defaultFileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        triggerToast(
+          'Export Successful',
+          'Your workspaces have been exported successfully!'
+        );
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      triggerToast(
+        'Export Failed',
+        'Something went wrong while exporting.',
+        'info'
+      );
+    }
   }, [
     workspaces,
     launchAtStartup,
@@ -311,41 +336,121 @@ export default function App() {
     triggerToast,
   ]);
 
-  const importWorkspaces = useCallback(
-    async (file: File): Promise<void> => {
-      try {
-        const text = await file.text();
-        const data = parseImportData(text);
+  const importWorkspaces = useCallback(async (): Promise<void> => {
+    try {
+      const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
 
-        const shouldReplace = confirm(
-          'Replace existing workspaces? (Cancel to merge)'
-        );
-        if (shouldReplace) {
-          setWorkspaces(data.workspaces);
-        } else {
-          const existingIds = new Set(workspaces.map((w) => w.id));
-          const newWorkspaces = data.workspaces.filter(
-            (w) => !existingIds.has(w.id)
-          );
-          setWorkspaces([...workspaces, ...newWorkspaces]);
-        }
-        if (data.preferences) {
-          triggerToast(
-            'Import Successful',
-            'Your workspaces have been imported successfully!'
-          );
-        }
-      } catch (error) {
-        console.error('Import error:', error);
-        triggerToast(
-          'Import Failed',
-          'The file is corrupted or in an invalid format.',
-          'info'
-        );
+      let fileContent: string;
+
+      if (isTauri) {
+        const { open } = await import('@tauri-apps/plugin-dialog');
+        const { readTextFile } = await import('@tauri-apps/plugin-fs');
+
+        const selected = await open({
+          filters: [
+            {
+              name: 'Shift Workspace',
+              extensions: ['shift', 'json'],
+            },
+          ],
+          multiple: false,
+        });
+
+        if (!selected) return;
+        fileContent = await readTextFile(selected);
+      } else {
+        // Fallback for browser dev mode
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.shift,application/json';
+
+        fileContent = await new Promise((resolve, reject) => {
+          input.onchange = async (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (file) {
+              resolve(await file.text());
+            } else {
+              reject(new Error('No file selected'));
+            }
+          };
+          input.click();
+        });
       }
-    },
-    [workspaces, triggerToast]
-  );
+
+      const data = parseImportData(fileContent);
+
+      // Ask user whether to replace or merge workspaces
+      const shouldReplace = window.confirm(
+        'Replace existing workspaces? (Cancel to merge)'
+      );
+
+      if (shouldReplace) {
+        setWorkspaces(data.workspaces);
+      } else {
+        const existingIds = new Set(workspaces.map((w) => w.id));
+        const newWorkspaces = data.workspaces.filter(
+          (w) => !existingIds.has(w.id)
+        );
+        setWorkspaces([...workspaces, ...newWorkspaces]);
+      }
+
+      // Apply preferences if available
+      if (data.preferences) {
+        if (data.preferences.launchAtStartup !== undefined) {
+          setLaunchAtStartup(data.preferences.launchAtStartup);
+          if (isTauri) {
+            const { invoke } = await import('@tauri-apps/api/core');
+            if (data.preferences.launchAtStartup) {
+              await invoke('plugin:autostart|enable');
+            } else {
+              await invoke('plugin:autostart|disable');
+            }
+          }
+        }
+        if (data.preferences.minimizeToTray !== undefined) {
+          setMinimizeToTray(data.preferences.minimizeToTray);
+          if (isTauri) {
+            const { invoke } = await import('@tauri-apps/api/core');
+            await invoke('set_minimize_to_tray', {
+              value: data.preferences.minimizeToTray,
+            });
+          }
+        }
+        if (data.preferences.shortcutKey !== undefined) {
+          setShortcutKey(data.preferences.shortcutKey);
+          if (isTauri) {
+            const { invoke } = await import('@tauri-apps/api/core');
+            await invoke('set_global_shortcut', {
+              newShortcut: data.preferences.shortcutKey,
+            });
+          }
+        }
+        if (data.preferences.autoBypassPreview !== undefined) {
+          setAutoBypassPreview(data.preferences.autoBypassPreview);
+        }
+      }
+
+      triggerToast(
+        'Import Successful',
+        'Your workspaces and preferences have been imported!'
+      );
+    } catch (error) {
+      console.error('Import error:', error);
+      triggerToast(
+        'Import Failed',
+        'The file is corrupted or in an invalid format.',
+        'info'
+      );
+    }
+  }, [
+    workspaces,
+    setWorkspaces,
+    setLaunchAtStartup,
+    setMinimizeToTray,
+    setShortcutKey,
+    setAutoBypassPreview,
+    triggerToast,
+  ]);
 
   const handleOnboardingComplete = useCallback(
     (config: {
@@ -393,9 +498,12 @@ export default function App() {
       executeWorkspacePipeline(previewingWorkspace);
       setPreviewingWorkspace(null);
     }
-  }, [previewingWorkspace, previewSecondsLeft, previewAutoTimerActive]);
-
-
+  }, [
+    previewingWorkspace,
+    previewSecondsLeft,
+    previewAutoTimerActive,
+    executeWorkspacePipeline,
+  ]);
 
   const handleLaunchWorkspace = useCallback(
     (workspace: Workspace) => {
@@ -415,13 +523,15 @@ export default function App() {
     if (!isTauri || !isMainWindow) return;
 
     let unlistenLaunchWorkspace: (() => void) | null = null;
-    
+
     import('@tauri-apps/api/event').then(({ listen }) => {
       listen('shift://launch-workspace', (event) => {
         console.log('[Main] Received launch workspace event:', event.payload);
         const workspace = event.payload as Workspace;
         handleLaunchWorkspace(workspace);
-      }).then((fn) => { unlistenLaunchWorkspace = fn; });
+      }).then((fn) => {
+        unlistenLaunchWorkspace = fn;
+      });
     });
 
     return () => {
@@ -437,108 +547,7 @@ export default function App() {
   }
 
   if (isLauncherWindow) {
-    const [launcherWorkspaces, setLauncherWorkspaces] = useState<Workspace[]>([]);
-    const [launcherApps, setLauncherApps] = useState<InstalledApp[]>([]);
-
-    // Listen for apps and workspaces updates from main window
-    useEffect(() => {
-      if (!isTauri) return;
-      
-      let unlistenApps: (() => void) | null = null;
-      let unlistenWorkspaces: (() => void) | null = null;
-      
-      import('@tauri-apps/api/event').then(({ listen }) => {
-        listen('shift://apps-updated', (event) => {
-          console.log('[Launcher] Received apps update:', event.payload);
-          setLauncherApps(event.payload as InstalledApp[]);
-        }).then((fn) => { unlistenApps = fn; });
-
-        listen('shift://workspaces-updated', (event) => {
-          console.log('[Launcher] Received workspaces update:', event.payload);
-          setLauncherWorkspaces(event.payload as Workspace[]);
-        }).then((fn) => { unlistenWorkspaces = fn; });
-      });
-
-      return () => {
-        if (unlistenApps) unlistenApps();
-        if (unlistenWorkspaces) unlistenWorkspaces();
-      };
-    }, []);
-
-    // handle launch item specifically for launcher window
-    const handleLauncherLaunchItem = useCallback(async (item: {
-      type: 'workspace' | 'app';
-      data: Workspace | InstalledApp;
-    }) => {
-      if (isTauri) {
-        const { getCurrentWindow } = await import('@tauri-apps/api/window');
-        await getCurrentWindow().hide();
-      }
-      
-      if (item.type === 'app') {
-        const app = item.data as InstalledApp;
-        try {
-          const { invoke } = await import('@tauri-apps/api/core');
-          await invoke('launch_application', { path: app.path });
-        } catch (e) {
-          console.error('Failed to launch app:', e);
-        }
-      } else {
-        // For workspace, send event to main window to launch
-        if (isTauri) {
-          const { emit } = await import('@tauri-apps/api/event');
-          emit('shift://launch-workspace', item.data);
-        }
-      }
-    }, []);
-
-    return (
-      <div className='w-screen h-screen bg-transparent font-sans select-none overflow-hidden text-neutral-900 dark:text-neutral-100'>
-        <LauncherPanel
-          isOpen={true}
-          onClose={async () => {
-            if (isTauri) {
-              const { getCurrentWindow } =
-                await import('@tauri-apps/api/window');
-              await getCurrentWindow().hide();
-              console.log('[Launcher Closed]');
-            }
-          }}
-          workspaces={launcherWorkspaces}
-          apps={launcherApps}
-          onLaunch={handleLauncherLaunchItem}
-          onOpenDashboard={async () => {
-            if (isTauri) {
-              const { getCurrentWindow, getAllWindows } =
-                await import('@tauri-apps/api/window');
-              await getCurrentWindow().hide();
-              const windows = await getAllWindows();
-              const mainWindow = windows.find((w) => w.label === 'main');
-              if (mainWindow) {
-                await mainWindow.show();
-                await mainWindow.unminimize();
-                await mainWindow.setFocus();
-              }
-            }
-          }}
-          onOpenSettings={async () => {
-            if (isTauri) {
-              const { getCurrentWindow, getAllWindows } =
-                await import('@tauri-apps/api/window');
-              await getCurrentWindow().hide();
-              const windows = await getAllWindows();
-              const mainWindow = windows.find((w) => w.label === 'main');
-              if (mainWindow) {
-                await mainWindow.show();
-                await mainWindow.unminimize();
-                await mainWindow.setFocus();
-                mainWindow.emit('open-settings');
-              }
-            }
-          }}
-        />
-      </div>
-    );
+    return <LauncherWindow />;
   }
 
   return (

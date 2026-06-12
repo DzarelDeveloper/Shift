@@ -121,8 +121,6 @@ export default function Dashboard({
     'home' | 'workspaces' | 'applications' | 'settings' | 'about'
   >('home');
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   // State untuk sistem info
   const [systemInfo, setSystemInfo] = useState<RawSystemInfo | null>(null);
 
@@ -1564,22 +1562,8 @@ export default function Dashboard({
                       'color-mix(in srgb, var(--border-color) 60%, transparent)',
                   }}
                 >
-                  <input
-                    ref={fileInputRef}
-                    type='file'
-                    accept='.shift,application/json'
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        importWorkspaces(file);
-                        if (fileInputRef.current)
-                          fileInputRef.current.value = '';
-                      }
-                    }}
-                    className='hidden'
-                  />
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={importWorkspaces}
                     className='flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 border'
                     style={{
                       backgroundColor: 'var(--card-bg)',
@@ -2429,7 +2413,8 @@ export default function Dashboard({
                             }}
                           >
                             <option value=''>
-                              Platform Default (Ctrl+Shift+Space / Cmd+Opt+Space)
+                              Platform Default (Ctrl+Shift+Space /
+                              Cmd+Opt+Space)
                             </option>
                             <option value='Ctrl+K'>
                               Ctrl + K (Vim / Slack style)
@@ -2438,7 +2423,9 @@ export default function Dashboard({
                               Alt + P / Cmd+Option+P
                             </option>
                             <option value='Alt+Z'>Alt + Z (Super Quick)</option>
-                            <option value='Ctrl+Shift+Space'>Ctrl + Shift + Space (Ubuntu-friendly)</option>
+                            <option value='Ctrl+Shift+Space'>
+                              Ctrl + Shift + Space (Ubuntu-friendly)
+                            </option>
                           </select>
                         </div>
                       </div>
