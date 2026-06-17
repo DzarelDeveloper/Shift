@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import {
   Plus,
   Trash2,
@@ -2460,8 +2461,17 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                           />
                           <select
                             value={shortcutKey}
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               setShortcutKey(e.target.value);
+                              try {
+                                const { invoke } = await import('@tauri-apps/api/core');
+                                await invoke('set_global_shortcut', {
+                                  newLauncherShortcut: e.target.value,
+                                  newDashboardShortcut: dashboardShortcutKey,
+                                });
+                              } catch (err) {
+                                console.error('Failed to update shortcut:', err);
+                              }
                               triggerToast(
                                 'Hotkey set',
                                 `Launcher hotkey bound to ${e.target.value || 'Platform Default'}`,
@@ -2500,8 +2510,17 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                           />
                           <select
                             value={dashboardShortcutKey}
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               setDashboardShortcutKey(e.target.value);
+                              try {
+                                const { invoke } = await import('@tauri-apps/api/core');
+                                await invoke('set_global_shortcut', {
+                                  newLauncherShortcut: shortcutKey,
+                                  newDashboardShortcut: e.target.value,
+                                });
+                              } catch (err) {
+                                console.error('Failed to update shortcut:', err);
+                              }
                               triggerToast(
                                 'Hotkey set',
                                 `Dashboard hotkey bound to ${e.target.value || 'Platform Default'}`,
@@ -2947,43 +2966,28 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                           improvements, and bug fixes automatically.
                         </span>
                       </div>
-                      <div className='flex gap-2'>
-                        <button
-                          onClick={handleViewLog}
-                          className='py-2 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all'
-                          style={{
-                            backgroundColor: 'var(--card-bg)',
-                            borderColor: 'var(--border-color)',
-                            color: 'var(--text-color)',
-                            border: '1px solid'
-                          }}
-                        >
-                          <FileText className='w-4 h-4' />
-                          <span>View Log</span>
-                        </button>
-                        <button
-                          onClick={handleCheckUpdates}
-                          disabled={isCheckingUpdate}
-                          className='py-2 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all min-w-[140px]'
-                          style={{
-                            backgroundColor: 'var(--accent-color)',
-                            color: '#fff',
-                            opacity: isCheckingUpdate ? 0.7 : 1,
-                          }}
-                        >
-                          {isCheckingUpdate ? (
-                            <>
-                              <RefreshCw className='w-4 h-4 animate-spin' />
-                              <span>Checking...</span>
-                            </>
-                          ) : (
-                            <>
-                              <RefreshCw className='w-4 h-4' />
-                              <span>Check for Updates</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
+                      <button
+                        onClick={handleCheckUpdates}
+                        disabled={isCheckingUpdate}
+                        className='py-2 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all min-w-[140px]'
+                        style={{
+                          backgroundColor: 'var(--accent-color)',
+                          color: '#fff',
+                          opacity: isCheckingUpdate ? 0.7 : 1,
+                        }}
+                      >
+                        {isCheckingUpdate ? (
+                          <>
+                            <RefreshCw className='w-4 h-4 animate-spin' />
+                            <span>Checking...</span>
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className='w-4 h-4' />
+                            <span>Check for Updates</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -3224,7 +3228,7 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                   </div>
 
                   <div
-                    className='pt-4 border-t grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs'
+                    className='pt-4 border-t grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs'
                     style={{
                       borderColor:
                         'color-mix(in srgb, var(--border-color) 60%, transparent)',
@@ -3272,6 +3276,19 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                         Tauri, React, TypeScript
                       </span>
                     </div>
+                    <button
+                      onClick={handleViewLog}
+                      className='p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-semibold transition-all hover:opacity-90'
+                      style={{
+                        backgroundColor: 'var(--bg-color)',
+                        borderColor:
+                          'color-mix(in srgb, var(--border-color) 60%, transparent)',
+                        color: 'var(--text-color)',
+                      }}
+                    >
+                      <FileText className='w-4 h-4' />
+                      <span>View Log</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -3879,11 +3896,20 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                 <X className="w-6 h-6" style={{ color: 'var(--text-color)' }} />
               </button>
             </div>
-            <div 
-              className="whitespace-pre-wrap text-sm leading-relaxed"
-              style={{ color: 'var(--text-color)' }}
-            >
-              {changelogContent}
+            <div className="text-sm leading-relaxed" style={{ color: 'var(--text-color)' }}>
+              <ReactMarkdown
+                components={{
+                  h1: ({ ...props }) => <h1 className="text-2xl font-bold mb-4" {...props} />,
+                  h2: ({ ...props }) => <h2 className="text-xl font-semibold mb-3 mt-5" {...props} />,
+                  h3: ({ ...props }) => <h3 className="text-lg font-semibold mb-2 mt-4" {...props} />,
+                  p: ({ ...props }) => <p className="mb-2" {...props} />,
+                  ul: ({ ...props }) => <ul className="list-disc pl-5 mb-2 space-y-1" {...props} />,
+                  li: ({ ...props }) => <li {...props} />,
+                  strong: ({ ...props }) => <strong className="font-semibold" {...props} />
+                }}
+              >
+                {changelogContent}
+              </ReactMarkdown>
             </div>
           </div>
         </div>
