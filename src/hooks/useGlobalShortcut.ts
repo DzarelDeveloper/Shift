@@ -2,12 +2,14 @@ import { useEffect } from 'react';
 
 interface UseGlobalShortcutProps {
   shortcutKey: string;
+  dashboardShortcutKey: string;
   minimizeToTray: boolean;
   enabled?: boolean;
 }
 
 export function useGlobalShortcut({
   shortcutKey,
+  dashboardShortcutKey,
   minimizeToTray,
   enabled = true,
 }: UseGlobalShortcutProps) {
@@ -15,6 +17,7 @@ export function useGlobalShortcut({
     console.log('[Shortcut] useGlobalShortcut useEffect called');
     console.log('[Shortcut] enabled:', enabled);
     console.log('[Shortcut] shortcutKey:', shortcutKey);
+    console.log('[Shortcut] dashboardShortcutKey:', dashboardShortcutKey);
     console.log('[Shortcut] minimizeToTray:', minimizeToTray);
 
     if (!enabled) {
@@ -29,8 +32,11 @@ export function useGlobalShortcut({
       console.log('[Shortcut] Importing Tauri core...');
       import('@tauri-apps/api/core')
         .then(async ({ invoke }) => {
-          console.log('[Shortcut] Calling set_global_shortcut with:', shortcutKey);
-          await invoke('set_global_shortcut', { newShortcut: shortcutKey }).catch(
+          console.log('[Shortcut] Calling set_global_shortcut with:', shortcutKey, dashboardShortcutKey);
+          await invoke('set_global_shortcut', { 
+            newLauncherShortcut: shortcutKey,
+            newDashboardShortcut: dashboardShortcutKey
+          }).catch(
             (e: unknown) =>
               console.error('[Shortcut] ❌ set_global_shortcut failed:', e)
           );
@@ -47,5 +53,5 @@ export function useGlobalShortcut({
     } else {
       console.log('[Shortcut] Not in Tauri environment, skipping');
     }
-  }, [enabled, shortcutKey, minimizeToTray]);
+  }, [enabled, shortcutKey, dashboardShortcutKey, minimizeToTray]);
 }

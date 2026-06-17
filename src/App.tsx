@@ -106,6 +106,10 @@ export default function App() {
     'settings_shortcut.json',
     ''
   );
+  const { data: dashboardShortcutKey, setData: setDashboardShortcutKey } = useDataStore(
+    'settings_dashboard_shortcut.json',
+    ''
+  );
   const { data: autoBypassPreview, setData: setAutoBypassPreview } =
     useDataStore('settings_bypass.json', false);
 
@@ -248,6 +252,7 @@ export default function App() {
   // the launcher window mounts.
   useGlobalShortcut({
     shortcutKey,
+    dashboardShortcutKey,
     minimizeToTray,
     enabled: isMainWindow,
   });
@@ -280,6 +285,7 @@ export default function App() {
         launchAtStartup,
         minimizeToTray,
         shortcutKey,
+        dashboardShortcutKey,
         autoBypassPreview,
       });
       const defaultFileName = `shift-workspaces-${new Date().toISOString().slice(0, 10)}.shift`;
@@ -332,6 +338,7 @@ export default function App() {
     launchAtStartup,
     minimizeToTray,
     shortcutKey,
+    dashboardShortcutKey,
     autoBypassPreview,
     triggerToast,
   ]);
@@ -418,10 +425,16 @@ export default function App() {
         }
         if (data.preferences.shortcutKey !== undefined) {
           setShortcutKey(data.preferences.shortcutKey);
+        }
+        if (data.preferences.dashboardShortcutKey !== undefined) {
+          setDashboardShortcutKey(data.preferences.dashboardShortcutKey);
+        }
+        if (data.preferences.shortcutKey !== undefined || data.preferences.dashboardShortcutKey !== undefined) {
           if (isTauri) {
             const { invoke } = await import('@tauri-apps/api/core');
             await invoke('set_global_shortcut', {
-              newShortcut: data.preferences.shortcutKey,
+              newLauncherShortcut: data.preferences.shortcutKey !== undefined ? data.preferences.shortcutKey : shortcutKey,
+              newDashboardShortcut: data.preferences.dashboardShortcutKey !== undefined ? data.preferences.dashboardShortcutKey : dashboardShortcutKey,
             });
           }
         }
@@ -448,6 +461,9 @@ export default function App() {
     setLaunchAtStartup,
     setMinimizeToTray,
     setShortcutKey,
+    setDashboardShortcutKey,
+    shortcutKey,
+    dashboardShortcutKey,
     setAutoBypassPreview,
     triggerToast,
   ]);
@@ -576,6 +592,8 @@ export default function App() {
             setMinimizeToTray={setMinimizeToTray}
             shortcutKey={shortcutKey}
             setShortcutKey={setShortcutKey}
+            dashboardShortcutKey={dashboardShortcutKey}
+            setDashboardShortcutKey={setDashboardShortcutKey}
             autoBypassPreview={autoBypassPreview}
             setAutoBypassPreview={setAutoBypassPreview}
             isMinimized={isMinimized}

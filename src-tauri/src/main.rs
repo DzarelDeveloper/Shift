@@ -530,11 +530,12 @@ fn map_shortcut_key(s: &str) -> String {
 #[tauri::command]
 fn set_global_shortcut(
     app_handle: AppHandle,
-    new_shortcut: String,
+    new_launcher_shortcut: String,
+    new_dashboard_shortcut: String,
     state: tauri::State<AppState>
 ) -> Result<(), String> {
     eprintln!("[Shortcut] =================================");
-    eprintln!("[Shortcut] set_global_shortcut() CALLED with new_shortcut={:?}", new_shortcut);
+    eprintln!("[Shortcut] set_global_shortcut() CALLED with new_launcher_shortcut={:?}, new_dashboard_shortcut={:?}", new_launcher_shortcut, new_dashboard_shortcut);
     let mut launcher_guard = state.launcher_shortcut.lock().unwrap();
     let mut dashboard_guard = state.dashboard_shortcut.lock().unwrap();
 
@@ -554,13 +555,17 @@ fn set_global_shortcut(
         }
     }
 
-    let launcher_str = if new_shortcut.is_empty() {
+    let launcher_str = if new_launcher_shortcut.is_empty() {
         map_shortcut_key(get_default_launcher_shortcut())
     } else {
-        map_shortcut_key(&new_shortcut)
+        map_shortcut_key(&new_launcher_shortcut)
     };
     
-    let dashboard_str = map_shortcut_key(get_default_dashboard_shortcut());
+    let dashboard_str = if new_dashboard_shortcut.is_empty() {
+        map_shortcut_key(get_default_dashboard_shortcut())
+    } else {
+        map_shortcut_key(&new_dashboard_shortcut)
+    };
     eprintln!("[Shortcut] Mapped shortcuts: Launcher={}, Dashboard={}", launcher_str, dashboard_str);
 
     let launcher_sc = launcher_str.parse::<Shortcut>().map_err(|e| {
@@ -746,10 +751,11 @@ fn main() {
 
             // Register shortcuts once at startup from the Rust side.
             // The frontend (main window only) may call set_global_shortcut to
-            // update the launcher binding when the user changes settings.
+            // update the bindings when the user changes settings.
             let _ = set_global_shortcut(
                 app.handle().clone(),
                 get_default_launcher_shortcut().to_string(),
+                get_default_dashboard_shortcut().to_string(),
                 app.state(),
             );
 

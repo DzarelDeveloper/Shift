@@ -20,6 +20,7 @@ import {
   Shield,
   Settings,
   AppWindow,
+  BookOpen,
 } from 'lucide-react';
 import logoUrl from '../assets/logo.png';
 import { Workspace, InstalledApp, LauncherItem } from '../types';
@@ -36,22 +37,12 @@ interface LauncherPanelProps {
 }
 
 const getModeIcon = (modeId: string) => {
-  switch (modeId) {
-    case 'coding':
-      return <FileCode2 className='w-5 h-5' />;
-    case 'cyber':
-      return <Shield className='w-5 h-5' />;
-    case 'design':
-      return <Palette className='w-5 h-5' />;
-    case 'marketing':
-      return <BarChart3 className='w-5 h-5' />;
-    case 'ai-assistant':
-      return <Sparkles className='w-5 h-5' />;
-    case 'settings':
-      return <Settings className='w-5 h-5' />;
-    default:
-      return <Command className='w-5 h-5' />;
-  }
+  const lowerId = modeId.toLowerCase();
+  if (lowerId.includes('coding') || lowerId.includes('code')) return <FileCode2 className='w-5 h-5' />;
+  if (lowerId.includes('cyber') || lowerId.includes('security')) return <Terminal className='w-5 h-5' />;
+  if (lowerId.includes('design') || lowerId.includes('art')) return <Palette className='w-5 h-5' />;
+  if (lowerId.includes('education') || lowerId.includes('belajar') || lowerId.includes('learn')) return <BookOpen className='w-5 h-5' />;
+  return <Folder className='w-5 h-5' />;
 };
 
 export default function LauncherPanel({

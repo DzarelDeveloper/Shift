@@ -85,6 +85,8 @@ interface DashboardProps {
   setMinimizeToTray: (val: boolean) => void;
   shortcutKey: string;
   setShortcutKey: (val: string) => void;
+  dashboardShortcutKey: string;
+  setDashboardShortcutKey: (val: string) => void;
   autoBypassPreview: boolean;
   setAutoBypassPreview: (val: boolean) => void;
   isMinimized: boolean;
@@ -106,6 +108,8 @@ export default function Dashboard({
   setMinimizeToTray,
   shortcutKey,
   setShortcutKey,
+  dashboardShortcutKey,
+  setDashboardShortcutKey,
   autoBypassPreview,
   setAutoBypassPreview,
   isMinimized,
@@ -932,19 +936,6 @@ export default function Dashboard({
                             <Code
                               className='w-5 h-5'
                               style={{ color: 'var(--accent-color)' }}
-                            />
-                          );
-                        if (
-                          lowerName.includes('design') ||
-                          lowerName.includes('art')
-                        )
-                          return <Brush className='w-5 h-5 text-pink-500' />;
-                        if (
-                          lowerName.includes('study') ||
-                          lowerName.includes('learn') ||
-                          lowerName.includes('school')
-                        )
-                          return (
                             <BookOpen className='w-5 h-5 text-emerald-500' />
                           );
                         if (
@@ -2389,7 +2380,7 @@ export default function Dashboard({
                           className='text-[10px] uppercase font-mono font-bold tracking-wider mb-2 block'
                           style={{ color: 'var(--text-color)', opacity: 0.6 }}
                         >
-                          Summon combination type
+                          Launcher Shortcut
                         </span>
                         <div className='relative'>
                           <Keyboard
@@ -2402,7 +2393,7 @@ export default function Dashboard({
                               setShortcutKey(e.target.value);
                               triggerToast(
                                 'Hotkey set',
-                                `Summon hotkey bound to ${e.target.value || 'Platform Default'}`,
+                                `Launcher hotkey bound to ${e.target.value || 'Platform Default'}`,
                                 'info'
                               );
                             }}
@@ -2414,94 +2405,53 @@ export default function Dashboard({
                             }}
                           >
                             <option value=''>
-                              Platform Default (Ctrl+Shift+Space /
-                              Cmd+Opt+Space)
+                              Default (Ctrl+Shift+Space / Cmd+Opt+Space)
                             </option>
-                            <option value='Ctrl+K'>
-                              Ctrl + K (Vim / Slack style)
-                            </option>
-                            <option value='Alt+P'>
-                              Alt + P / Cmd+Option+P
-                            </option>
-                            <option value='Alt+Z'>Alt + Z (Super Quick)</option>
-                            <option value='Ctrl+Shift+Space'>
-                              Ctrl + Shift + Space (Ubuntu-friendly)
-                            </option>
+                            <option value='Ctrl+K'>Ctrl + K</option>
+                            <option value='Alt+Space'>Alt + Space</option>
+                            <option value='Alt+Z'>Alt + Z</option>
+                            <option value='Ctrl+Shift+Space'>Ctrl + Shift + Space</option>
                           </select>
                         </div>
                       </div>
 
-                      <div
-                        className='p-4 rounded-xl border'
-                        style={{
-                          backgroundColor: 'var(--bg-color)',
-                          borderColor: 'var(--border-color)',
-                        }}
-                      >
+                      <div className='space-y-2'>
                         <span
-                          className='text-[9px] uppercase font-mono font-bold block mb-3'
+                          className='text-[10px] uppercase font-mono font-bold tracking-wider mb-2 block'
                           style={{ color: 'var(--text-color)', opacity: 0.6 }}
                         >
-                          Current OS shortcuts
+                          Dashboard Shortcut
                         </span>
-                        <div
-                          className='space-y-2 font-mono text-[10px]'
-                          style={{ color: 'var(--text-color)', opacity: 0.7 }}
-                        >
-                          <div
-                            className='flex justify-between items-center px-2 py-1.5 rounded-lg'
+                        <div className='relative'>
+                          <Keyboard
+                            className='absolute left-3 top-2.5 w-4 h-4'
+                            style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                          />
+                          <select
+                            value={dashboardShortcutKey}
+                            onChange={(e) => {
+                              setDashboardShortcutKey(e.target.value);
+                              triggerToast(
+                                'Hotkey set',
+                                `Dashboard hotkey bound to ${e.target.value || 'Platform Default'}`,
+                                'info'
+                              );
+                            }}
+                            className='w-full px-3.5 py-2.5 pl-10 rounded-xl font-mono text-xs focus:outline-none transition-all border'
                             style={{
-                              backgroundColor:
-                                'color-mix(in srgb, var(--card-bg) 50%, transparent)',
+                              backgroundColor: 'var(--bg-color)',
+                              borderColor: 'var(--border-color)',
+                              color: 'var(--text-color)',
                             }}
                           >
-                            <span
-                              style={{
-                                color: 'var(--text-color)',
-                                opacity: 0.6,
-                              }}
-                            >
-                              Windows / Linux:
-                            </span>
-                            <span
-                              className='font-semibold px-2 py-0.5 rounded border'
-                              style={{
-                                backgroundColor: 'var(--card-bg)',
-                                borderColor: 'var(--border-color)',
-                                color: 'var(--text-color)',
-                              }}
-                            >
-                              {shortcutKey || 'Ctrl+Alt+Space'}
-                            </span>
-                          </div>
-                          <div
-                            className='flex justify-between items-center px-2 py-1.5 rounded-lg'
-                            style={{
-                              backgroundColor:
-                                'color-mix(in srgb, var(--card-bg) 50%, transparent)',
-                            }}
-                          >
-                            <span
-                              style={{
-                                color: 'var(--text-color)',
-                                opacity: 0.6,
-                              }}
-                            >
-                              macOS:
-                            </span>
-                            <span
-                              className='font-semibold px-2 py-0.5 rounded border'
-                              style={{
-                                backgroundColor: 'var(--card-bg)',
-                                borderColor: 'var(--border-color)',
-                                color: 'var(--text-color)',
-                              }}
-                            >
-                              {shortcutKey
-                                ? `Cmd + Option + ${shortcutKey.slice(-1)}`
-                                : 'Cmd+Opt+Space'}
-                            </span>
-                          </div>
+                            <option value=''>
+                              Default (Ctrl+Alt+Enter / Cmd+Opt+Enter)
+                            </option>
+                            <option value='Ctrl+Enter'>Ctrl + Enter</option>
+                            <option value='Alt+Enter'>Alt + Enter</option>
+                            <option value='Alt+D'>Alt + D</option>
+                            <option value='Ctrl+Shift+Enter'>Ctrl + Shift + Enter</option>
+                          </select>
                         </div>
                       </div>
                     </div>
@@ -2657,89 +2607,7 @@ export default function Dashboard({
                   </div>
                 </div>
 
-                {/* 4. Software Updates */}
-                <div
-                  className='p-6 rounded-2xl space-y-5 backdrop-blur-sm border'
-                  style={{
-                    backgroundColor:
-                      'color-mix(in srgb, var(--card-bg) 20%, transparent)',
-                    borderColor: 'var(--border-color)',
-                  }}
-                >
-                  <div className='flex items-center gap-3'>
-                    <div
-                      className='p-2.5 rounded-xl border'
-                      style={{
-                        backgroundColor: 'var(--card-bg)',
-                        borderColor: 'var(--border-color)',
-                      }}
-                    >
-                      <Download className='w-4 h-4 text-blue-400' />
-                    </div>
-                    <div>
-                      <h3
-                        className='font-bold text-sm uppercase tracking-wider font-mono'
-                        style={{ color: 'var(--text-color)' }}
-                      >
-                        Software Updates
-                      </h3>
-                      <p
-                        className='text-[11px] mt-0.5'
-                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
-                      >
-                        Check for new versions of Shift.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className='pt-4 border-t'
-                    style={{
-                      borderColor:
-                        'color-mix(in srgb, var(--border-color) 60%, transparent)',
-                    }}
-                  >
-                    <div className='flex items-center justify-between text-xs'>
-                      <div className='space-y-1 pr-8'>
-                        <span
-                          className='font-bold block text-sm'
-                          style={{ color: 'var(--text-color)' }}
-                        >
-                          Over-the-Air Updates
-                        </span>
-                        <span
-                          className='text-[11px] block leading-relaxed'
-                          style={{ color: 'var(--text-color)', opacity: 0.6 }}
-                        >
-                          Keep Shift updated to receive new features,
-                          improvements, and bug fixes automatically.
-                        </span>
-                      </div>
-                      <button
-                        onClick={handleCheckUpdates}
-                        disabled={isCheckingUpdate}
-                        className='py-2 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all min-w-[140px]'
-                        style={{
-                          backgroundColor: 'var(--accent-color)',
-                          color: '#fff',
-                          opacity: isCheckingUpdate ? 0.7 : 1,
-                        }}
-                      >
-                        {isCheckingUpdate ? (
-                          <>
-                            <RefreshCw className='w-4 h-4 animate-spin' />
-                            <span>Checking...</span>
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className='w-4 h-4' />
-                            <span>Check for Updates</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                {/* End Settings */}
               </div>
             </div>
           )}
@@ -2950,6 +2818,90 @@ export default function Dashboard({
                   </div>
                 </div>
 
+                {/* Software Updates */}
+                <div
+                  className='p-6 rounded-2xl space-y-5 backdrop-blur-sm border'
+                  style={{
+                    backgroundColor:
+                      'color-mix(in srgb, var(--card-bg) 20%, transparent)',
+                    borderColor: 'var(--border-color)',
+                  }}
+                >
+                  <div className='flex items-center gap-3'>
+                    <div
+                      className='p-2.5 rounded-xl border'
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-color)',
+                      }}
+                    >
+                      <Download className='w-4 h-4 text-blue-400' />
+                    </div>
+                    <div>
+                      <h3
+                        className='font-bold text-sm uppercase tracking-wider font-mono'
+                        style={{ color: 'var(--text-color)' }}
+                      >
+                        Software Updates
+                      </h3>
+                      <p
+                        className='text-[11px] mt-0.5'
+                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                      >
+                        Check for new versions of Shift.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className='pt-4 border-t'
+                    style={{
+                      borderColor:
+                        'color-mix(in srgb, var(--border-color) 60%, transparent)',
+                    }}
+                  >
+                    <div className='flex items-center justify-between text-xs'>
+                      <div className='space-y-1 pr-8'>
+                        <span
+                          className='font-bold block text-sm'
+                          style={{ color: 'var(--text-color)' }}
+                        >
+                          Over-the-Air Updates
+                        </span>
+                        <span
+                          className='text-[11px] block leading-relaxed'
+                          style={{ color: 'var(--text-color)', opacity: 0.6 }}
+                        >
+                          Keep Shift updated to receive new features,
+                          improvements, and bug fixes automatically.
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleCheckUpdates}
+                        disabled={isCheckingUpdate}
+                        className='py-2 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all min-w-[140px]'
+                        style={{
+                          backgroundColor: 'var(--accent-color)',
+                          color: '#fff',
+                          opacity: isCheckingUpdate ? 0.7 : 1,
+                        }}
+                      >
+                        {isCheckingUpdate ? (
+                          <>
+                            <RefreshCw className='w-4 h-4 animate-spin' />
+                            <span>Checking...</span>
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className='w-4 h-4' />
+                            <span>Check for Updates</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Latest Changes */}
                 <div
                   className='p-6 rounded-2xl space-y-5 backdrop-blur-sm border'
@@ -3012,94 +2964,22 @@ export default function Dashboard({
                     </ul>
                     <button
                       onClick={() => {
-                        window.open('https://github.com/DzarelDeveloper/Shift/releases', '_blank');
+                        window.open('https://github.com/DzarelDeveloper/Shift/blob/main/CHANGELOG.md', '_blank');
                       }}
-                      className='mt-3 w-full sm:w-auto py-2 px-4 rounded-lg text-xs font-semibold border'
+                      className='mt-3 w-full sm:w-auto py-2 px-4 rounded-lg text-xs font-semibold border flex items-center justify-center gap-2'
                       style={{
                         backgroundColor: 'var(--card-bg)',
                         borderColor: 'var(--border-color)',
                         color: 'var(--text-color)',
                       }}
                     >
+                      <FileText className='w-4 h-4' />
                       View Full Changelog
                     </button>
                   </div>
                 </div>
 
-                {/* Roadmap */}
-                <div
-                  className='p-6 rounded-2xl space-y-5 backdrop-blur-sm border'
-                  style={{
-                    backgroundColor:
-                      'color-mix(in srgb, var(--card-bg) 20%, transparent)',
-                    borderColor: 'var(--border-color)',
-                  }}
-                >
-                  <div className='flex items-center gap-3'>
-                    <div
-                      className='p-2.5 rounded-xl border'
-                      style={{
-                        backgroundColor: 'var(--card-bg)',
-                        borderColor: 'var(--border-color)',
-                      }}
-                    >
-                      <Sliders className='w-4 h-4 text-indigo-400' />
-                    </div>
-                    <div>
-                      <h3
-                        className='font-bold text-sm uppercase tracking-wider font-mono'
-                        style={{ color: 'var(--text-color)' }}
-                      >
-                        ROADMAP
-                      </h3>
-                      <p
-                        className='text-[11px] mt-0.5'
-                        style={{ color: 'var(--text-color)', opacity: 0.6 }}
-                      >
-                        Features planned for upcoming releases.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className='pt-4 border-t space-y-3 text-xs'
-                    style={{
-                      borderColor:
-                        'color-mix(in srgb, var(--border-color) 60%, transparent)',
-                    }}
-                  >
-                    <ul className='space-y-2' style={{ color: 'var(--text-color)' }}>
-                      <li className='flex items-center gap-2'>
-                        <CheckCircle2 className='w-4 h-4 text-emerald-400' />
-                        <span>Workspace Management</span>
-                      </li>
-                      <li className='flex items-center gap-2'>
-                        <CheckCircle2 className='w-4 h-4 text-emerald-400' />
-                        <span>Application Launcher</span>
-                      </li>
-                      <li className='flex items-center gap-2'>
-                        <CheckCircle2 className='w-4 h-4 text-emerald-400' />
-                        <span>Auto Startup</span>
-                      </li>
-                      <li className='flex items-center gap-2'>
-                        <div className='w-4 h-4 rounded-full border-2 border-dashed border-zinc-600' />
-                        <span>Global Search</span>
-                      </li>
-                      <li className='flex items-center gap-2'>
-                        <div className='w-4 h-4 rounded-full border-2 border-dashed border-zinc-600' />
-                        <span>Workspace Templates</span>
-                      </li>
-                      <li className='flex items-center gap-2'>
-                        <div className='w-4 h-4 rounded-full border-2 border-dashed border-zinc-600' />
-                        <span>Plugin System</span>
-                      </li>
-                      <li className='flex items-center gap-2'>
-                        <div className='w-4 h-4 rounded-full border-2 border-dashed border-zinc-600' />
-                        <span>Cloud Sync</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+                {/* No Roadmap */}
 
                 {/* Resources */}
                 <div
@@ -3780,17 +3660,39 @@ export default function Dashboard({
                           onChange={(e) => setNewFolderName(e.target.value)}
                         />
                       </div>
-                      <div>
-                        <span className='text-[10px] text-zinc-500 mb-1 block'>
-                          Absolute Drive Path:
-                        </span>
-                        <input
-                          type='text'
-                          className='w-full bg-zinc-900/70 border border-zinc-900 px-2 py-1.5 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-700'
-                          placeholder='D:/Projects'
-                          value={newFolderPath}
-                          onChange={(e) => setNewFolderPath(e.target.value)}
-                        />
+                      <div className='flex gap-2 items-end'>
+                        <div className='flex-1'>
+                          <span className='text-[10px] text-zinc-500 mb-1 block'>
+                            Absolute Drive Path:
+                          </span>
+                          <input
+                            type='text'
+                            className='w-full bg-zinc-900/70 border border-zinc-900 px-2 py-1.5 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-700'
+                            placeholder='D:/Projects'
+                            value={newFolderPath}
+                            onChange={(e) => setNewFolderPath(e.target.value)}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
+                          onClick={async () => {
+                            try {
+                              const { open } = await import('@tauri-apps/plugin-dialog');
+                              const selected = await open({
+                                directory: true,
+                                multiple: false,
+                              });
+                              if (selected && typeof selected === 'string') {
+                                setNewFolderPath(selected);
+                              }
+                            } catch (err) {
+                              console.error('Failed to open folder dialog:', err);
+                            }
+                          }}
+                        >
+                          Browse
+                        </button>
                       </div>
                     </div>
 

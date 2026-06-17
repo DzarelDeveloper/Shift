@@ -1,29 +1,25 @@
 # Shift Changelog
 
-## v0.5.7 (2026-06-10)
+## v0.7.0 (2026-06-17)
 
-### New Features
-- Complete production release process implemented
-- Version centralization with single source of truth (src/config/app.ts)
-- AppInfo hook (useAppInfo) to get live Tauri version
-- VersionBadge reusable component for UI
-
-### Improvements
-- Installed app detection now properly includes `id` field in Rust backend
-- Added detailed debug logging for app detection and versioning
-- Export utilities now use centralized version config
-- Fixed duplicate `get_default_launcher_shortcut` function in main.rs
+### Fitur (Features)
+- **Dual Global Shortcut System:** Pemisahan kontrol pintasan (*shortcut*) secara mandiri untuk memanggil *Workspace Launcher* (pencarian instan) dan *Dashboard* (pengaturan penuh) agar tidak lagi saling tumpang tindih.
+- **Interactive Folder Browser:** Fitur pemilihan `Absolute Drive Path` otomatis menggunakan *native OS file dialog* untuk menghindari kesalahan pengetikan (*typo*) pada pembuatan *workspace*.
+- **Smart Workspace Icons:** Peningkatan deteksi cerdas untuk ikon workspace secara dinamis berdasarkan kata kunci (Code, Cyber, Design, Education) yang tersinkronisasi di Launcher maupun Dashboard.
+- **Software Updates Relocation:** Menu OTA Updater kini dipusatkan di tab *About* dengan tambahan tautan langsung menuju halaman Changelog resmi.
 
 ### Bug Fixes
-- Installed apps not appearing in launcher (missing id field fixed)
-- Fixed potential duplicate window issues
-- Improved Linux .desktop file parsing
+- **Shortcut Collision Fix:** Memperbaiki *deadlock* navigasi dan pemanggilan *window* akibat *global shortcut* yang sebelumnya tercampur.
+- **Icon Synchronization Logic:** Memperbaiki inkonsistensi *rendering* ikon *workspace* antara *main window* dan *launcher window*.
+- **Legacy UI Cleanup:** Pembersihan menu "Roadmap" yang sudah *deprecated* serta pembaruan tautan (GitHub/Wiki/Issues) ke repositori resmi `DzarelDeveloper/Shift`.
+- **Version Alignment:** Memperbaiki inkonsistensi metadata versi dari `v0.6.9` ke `v0.7.0` pada `package.json` dan `tauri.conf.json`.
 
-### Architecture Changes
-- Centralized app metadata in src/config/app.ts
-- Added src/components/VersionBadge.tsx and src/hooks/useAppInfo.ts
-- Updated workspaceUtils to use APP_CONFIG for export version
+### Kesimpulan (Conclusion)
+Rilis `v0.7.0` difokuskan pada peningkatan kualitas interaksi pengguna (UX), penghapusan rintangan pengisian data (seperti ketidaktepatan pengetikan *path* direktori), dan memberikan fondasi arsitektur pintasan (*shortcut*) global yang lebih solid untuk aplikasi multi-*window*.
 
-### Known Issues
-- ESLint warnings still present (formatting issues)
-- Clippy warnings in Rust code (minor)
+## v0.6.9 (2026-06-12)
+
+### Improvements
+- Perbaikan bug minor dan pembaruan build process
+- Penyelesaian aset aplikasi untuk rilis otomatis (macOS, Windows, Linux)
+- Penambahan fungsi pembaruan versi (Over-the-Air)
