@@ -1,5 +1,18 @@
 # Shift Changelog
 
+## v0.7.1 (2026-06-17)
+
+### Fitur (Features)
+- **In-App Changelog Modal:** Menampilkan seluruh riwayat update langsung di dalam aplikasi tanpa harus membuka browser eksternal.
+- **View Log Button:** Menambahkan tombol untuk membuka direktori log aplikasi secara langsung dari tab About.
+
+### Bug Fixes
+- **Resource Links Fix:** Memperbaiki tombol di bagian Resources agar membuka link di browser default dengan benar.
+- **Version Consistency:** Semua file konfigurasi (package.json, Cargo.toml, tauri.conf.json) sekarang menggunakan versi yang seragam.
+
+### Kesimpulan (Conclusion)
+Rilis `v0.7.1` difokuskan pada perbaikan kecil dan peningkatan user experience agar aplikasi lebih stabil dan nyaman digunakan.
+
 ## v0.7.0 (2026-06-17)
 
 ### Fitur (Features)

@@ -190,6 +190,19 @@ export default function Dashboard({
 
   const changelogContent = `# Shift Changelog
 
+## v0.7.1 (2026-06-17)
+
+### Fitur (Features)
+- **In-App Changelog Modal:** Menampilkan seluruh riwayat update langsung di dalam aplikasi tanpa harus membuka browser eksternal.
+- **View Log Button:** Menambahkan tombol untuk membuka direktori log aplikasi secara langsung dari tab About.
+
+### Bug Fixes
+- **Resource Links Fix:** Memperbaiki tombol di bagian Resources agar membuka link di browser default dengan benar.
+- **Version Consistency:** Semua file konfigurasi (package.json, Cargo.toml, tauri.conf.json) sekarang menggunakan versi yang seragam.
+
+### Kesimpulan (Conclusion)
+Rilis \`v0.7.1\` difokuskan pada perbaikan kecil dan peningkatan user experience agar aplikasi lebih stabil dan nyaman digunakan.
+
 ## v0.7.0 (2026-06-17)
 
 ### Fitur (Features)
@@ -347,6 +360,22 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
       );
     } finally {
       setIsCheckingUpdate(false);
+    }
+  };
+
+  const handleViewLog = async () => {
+    try {
+      const { open } = await import('@tauri-apps/plugin-shell');
+      const { appDataDir } = await import('@tauri-apps/api/path');
+      const logDir = await appDataDir();
+      await open(logDir);
+    } catch (err) {
+      console.error('Failed to open log directory:', err);
+      triggerToast(
+        'Log Open Failed',
+        'Could not open log directory.',
+        'info'
+      );
     }
   };
 
@@ -2918,28 +2947,43 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                           improvements, and bug fixes automatically.
                         </span>
                       </div>
-                      <button
-                        onClick={handleCheckUpdates}
-                        disabled={isCheckingUpdate}
-                        className='py-2 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all min-w-[140px]'
-                        style={{
-                          backgroundColor: 'var(--accent-color)',
-                          color: '#fff',
-                          opacity: isCheckingUpdate ? 0.7 : 1,
-                        }}
-                      >
-                        {isCheckingUpdate ? (
-                          <>
-                            <RefreshCw className='w-4 h-4 animate-spin' />
-                            <span>Checking...</span>
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className='w-4 h-4' />
-                            <span>Check for Updates</span>
-                          </>
-                        )}
-                      </button>
+                      <div className='flex gap-2'>
+                        <button
+                          onClick={handleViewLog}
+                          className='py-2 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all'
+                          style={{
+                            backgroundColor: 'var(--card-bg)',
+                            borderColor: 'var(--border-color)',
+                            color: 'var(--text-color)',
+                            border: '1px solid'
+                          }}
+                        >
+                          <FileText className='w-4 h-4' />
+                          <span>View Log</span>
+                        </button>
+                        <button
+                          onClick={handleCheckUpdates}
+                          disabled={isCheckingUpdate}
+                          className='py-2 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all min-w-[140px]'
+                          style={{
+                            backgroundColor: 'var(--accent-color)',
+                            color: '#fff',
+                            opacity: isCheckingUpdate ? 0.7 : 1,
+                          }}
+                        >
+                          {isCheckingUpdate ? (
+                            <>
+                              <RefreshCw className='w-4 h-4 animate-spin' />
+                              <span>Checking...</span>
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className='w-4 h-4' />
+                              <span>Check for Updates</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3066,8 +3110,13 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                     }}
                   >
                     <button
-                      onClick={() => {
-                        window.open('https://github.com/DzarelDeveloper/Shift', '_blank');
+                      onClick={async () => {
+                        try {
+                          const { open } = await import('@tauri-apps/plugin-shell');
+                          await open('https://github.com/DzarelDeveloper/Shift');
+                        } catch (err) {
+                          console.error('Failed to open link:', err);
+                        }
                       }}
                       className='p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all hover:opacity-90'
                       style={{
@@ -3080,8 +3129,13 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                       <span>GitHub Repository</span>
                     </button>
                     <button
-                      onClick={() => {
-                        window.open('https://github.com/DzarelDeveloper/Shift/wiki', '_blank');
+                      onClick={async () => {
+                        try {
+                          const { open } = await import('@tauri-apps/plugin-shell');
+                          await open('https://github.com/DzarelDeveloper/Shift/wiki');
+                        } catch (err) {
+                          console.error('Failed to open link:', err);
+                        }
                       }}
                       className='p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all hover:opacity-90'
                       style={{
@@ -3094,8 +3148,13 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                       <span>Documentation</span>
                     </button>
                     <button
-                      onClick={() => {
-                        window.open('https://github.com/DzarelDeveloper/Shift/issues/new', '_blank');
+                      onClick={async () => {
+                        try {
+                          const { open } = await import('@tauri-apps/plugin-shell');
+                          await open('https://github.com/DzarelDeveloper/Shift/issues/new');
+                        } catch (err) {
+                          console.error('Failed to open link:', err);
+                        }
                       }}
                       className='p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all hover:opacity-90'
                       style={{
@@ -3108,8 +3167,13 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                       <span>Report Issue</span>
                     </button>
                     <button
-                      onClick={() => {
-                        window.open('https://github.com/DzarelDeveloper/Shift/discussions/new', '_blank');
+                      onClick={async () => {
+                        try {
+                          const { open } = await import('@tauri-apps/plugin-shell');
+                          await open('https://github.com/DzarelDeveloper/Shift/discussions/new');
+                        } catch (err) {
+                          console.error('Failed to open link:', err);
+                        }
                       }}
                       className='p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all hover:opacity-90'
                       style={{
