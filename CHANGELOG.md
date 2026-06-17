@@ -1,5 +1,18 @@
 # Shift Changelog
 
+## v0.7.2 (2026-06-17)
+
+### Fitur (Features)
+- **Markdown Changelog Rendering:** Menampilkan riwayat update dengan format Markdown untuk keterbacaan yang lebih baik.
+- **Real-Time Shortcut Application:** Perubahan shortcut launcher/dashboard sekarang diterapkan secara langsung tanpa harus restart aplikasi.
+
+### Bug Fixes
+- **UI Organization:** Memindahkan tombol "View Log" dari bagian "Software Updates" ke bagian "Project Information" agar lebih terorganisir.
+- **Version Consistency:** Semua file konfigurasi (package.json, Cargo.toml, tauri.conf.json) sekarang menggunakan versi yang seragam.
+
+### Kesimpulan (Conclusion)
+Rilis `v0.7.2` difokuskan pada peningkatan user experience dan organisasi UI, sehingga aplikasi lebih nyaman dan mudah digunakan.
+
 ## v0.7.1 (2026-06-17)
 
 ### Fitur (Features)
