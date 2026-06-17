@@ -49,6 +49,7 @@ export interface ShiftExportData {
     launchAtStartup?: boolean;
     minimizeToTray?: boolean;
     shortcutKey?: string;
+    dashboardShortcutKey?: string;
     autoBypassPreview?: boolean;
   };
 }

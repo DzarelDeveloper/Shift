@@ -936,7 +936,7 @@ export default function Dashboard({
                             <Code
                               className='w-5 h-5'
                               style={{ color: 'var(--accent-color)' }}
-                            <BookOpen className='w-5 h-5 text-emerald-500' />
+                            />
                           );
                         if (
                           lowerName.includes('cyber') ||
@@ -945,6 +945,21 @@ export default function Dashboard({
                         )
                           return (
                             <ShieldAlert className='w-5 h-5 text-red-500' />
+                          );
+                        if (
+                          lowerName.includes('design') ||
+                          lowerName.includes('art')
+                        )
+                          return (
+                            <Palette className='w-5 h-5 text-purple-500' />
+                          );
+                        if (
+                          lowerName.includes('education') ||
+                          lowerName.includes('learn') ||
+                          lowerName.includes('belajar')
+                        )
+                          return (
+                            <BookOpen className='w-5 h-5 text-emerald-500' />
                           );
                         return <Sliders className='w-5 h-5 text-amber-500' />;
                       })();

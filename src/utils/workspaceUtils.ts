@@ -7,6 +7,7 @@ export function createExportData(
     launchAtStartup: boolean;
     minimizeToTray: boolean;
     shortcutKey: string;
+    dashboardShortcutKey: string;
     autoBypassPreview: boolean;
   }
 ): string {
