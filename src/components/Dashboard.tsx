@@ -186,6 +186,33 @@ export default function Dashboard({
   } | null>(null);
   const [checkingHealth, setCheckingHealth] = useState(false);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(false);
+
+  const changelogContent = `# Shift Changelog
+
+## v0.7.0 (2026-06-17)
+
+### Fitur (Features)
+- **Dual Global Shortcut System:** Pemisahan kontrol pintasan (shortcut) secara mandiri untuk memanggil Workspace Launcher (pencarian instan) dan Dashboard (pengaturan penuh) agar tidak lagi saling tumpang tindih.
+- **Interactive Folder Browser:** Fitur pemilihan Absolute Drive Path otomatis menggunakan native OS file dialog untuk menghindari kesalahan pengetikan (typo) pada pembuatan workspace.
+- **Smart Workspace Icons:** Peningkatan deteksi cerdas untuk ikon workspace secara dinamis berdasarkan kata kunci (Code, Cyber, Design, Education) yang tersinkronisasi di Launcher maupun Dashboard.
+- **Software Updates Relocation:** Menu OTA Updater kini dipusatkan di tab About dengan tambahan tautan langsung menuju halaman Changelog resmi.
+
+### Bug Fixes
+- **Shortcut Collision Fix:** Memperbaiki deadlock navigasi dan pemanggilan window akibat global shortcut yang sebelumnya tercampur.
+- **Icon Synchronization Logic:** Memperbaiki inkonsistensi rendering ikon workspace antara main window dan launcher window.
+- **Legacy UI Cleanup:** Pembersihan menu "Roadmap" yang sudah deprecated serta pembaruan tautan (GitHub/Wiki/Issues) ke repositori resmi DzarelDeveloper/Shift.
+- **Version Alignment:** Memperbaiki inkonsistensi metadata versi dari v0.6.9 ke v0.7.0 pada package.json dan tauri.conf.json.
+
+### Kesimpulan (Conclusion)
+Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), penghapusan rintangan pengisian data (seperti ketidaktepatan pengetikan path direktori), dan memberikan fondasi arsitektur pintasan (shortcut) global yang lebih solid untuk aplikasi multi-window.
+
+## v0.6.9 (2026-06-12)
+
+### Improvements
+- Perbaikan bug minor dan pembaruan build process
+- Penyelesaian aset aplikasi untuk rilis otomatis (macOS, Windows, Linux)
+- Penambahan fungsi pembaruan versi (Over-the-Air)`;
 
   // Helper: Dapatkan OS saat ini secara otomatis
   const getCurrentPlatform = (): PlatformType => {
@@ -2979,7 +3006,7 @@ export default function Dashboard({
                     </ul>
                     <button
                       onClick={() => {
-                        window.open('https://github.com/DzarelDeveloper/Shift/blob/main/CHANGELOG.md', '_blank');
+                        setShowChangelog(true);
                       }}
                       className='mt-3 w-full sm:w-auto py-2 px-4 rounded-lg text-xs font-semibold border flex items-center justify-center gap-2'
                       style={{
@@ -3757,6 +3784,46 @@ export default function Dashboard({
           </div>
         )}
       </AnimatePresence>
+
+      {/* Changelog Modal */}
+      {showChangelog && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+          onClick={() => setShowChangelog(false)}
+        >
+          <div 
+            className="w-full max-w-3xl max-h-[80vh] overflow-auto rounded-2xl p-6 shadow-2xl"
+            style={{ 
+              backgroundColor: 'var(--card-bg)', 
+              border: '1px solid var(--border-color)' 
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 
+                className="text-xl font-bold"
+                style={{ color: 'var(--text-color)' }}
+              >
+                Changelog
+              </h2>
+              <button
+                onClick={() => setShowChangelog(false)}
+                className="p-2 rounded-full transition-colors hover:opacity-80"
+                style={{ backgroundColor: 'var(--card-bg)' }}
+              >
+                <X className="w-6 h-6" style={{ color: 'var(--text-color)' }} />
+              </button>
+            </div>
+            <div 
+              className="whitespace-pre-wrap text-sm leading-relaxed"
+              style={{ color: 'var(--text-color)' }}
+            >
+              {changelogContent}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
