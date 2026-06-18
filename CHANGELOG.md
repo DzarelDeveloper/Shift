@@ -1,5 +1,37 @@
 # Shift Changelog
 
+## v0.7.4 (2026-06-18)
+
+### Bug Fixes
+- **Update Wizard Fix:** Memperbaiki bug kritis di mana Update Wizard tidak muncul setelah update akibat race condition antara `fallbackVersion` dan versi runtime Tauri.
+- **Capabilities Fix:** Menambahkan izin `fs:allow-exists` dan `fs:allow-mkdir` agar penyimpanan data workspace berjalan dengan benar di production.
+- **Tray Icon Behavior:** Memperbaiki logika klik tray icon agar menghormati pengaturan "Minimize to Tray" — window tidak lagi disembunyikan jika opsi tersebut dimatikan.
+- **Version Sync:** Menyinkronkan `fallbackVersion` di `app.ts` agar selalu sesuai dengan versi rilis terbaru.
+
+### Improvements
+- **Production Cleanup:** Menghapus ratusan debug log berlebihan dari backend Rust (`eprintln!`) dan frontend React (`console.log`) untuk meningkatkan performa startup.
+- **Type Safety:** Memperbaiki interface `importWorkspaces` agar sesuai dengan implementasinya (tidak lagi menerima parameter `File` yang tidak dipakai).
+- **DataStore Stability:** Memperbaiki dependency array yang stale pada `useDataStore` untuk mencegah auto-save loop.
+
+### Kesimpulan (Conclusion)
+Rilis `v0.7.4` berfokus pada stabilitas production, khususnya memastikan Update Wizard berfungsi dengan benar dan seluruh permission filesystem tersedia untuk penyimpanan data.
+
+## v0.7.3 (2026-06-18)
+
+### Fitur (Features)
+- **Safe Workspace Import:** Mengimpor data workspace (.shift) kini menggunakan mekanisme penggabungan (merge) pintar dengan konfirmasi yang lebih jelas. Data lama tidak akan terhapus.
+- **Unified Workspace Export:** Fitur ekspor disederhanakan dengan menghilangkan script spesifik OS dan kini berfokus penuh pada format `.shift` yang lebih portabel.
+- **Real-Time Data Sync:** Penambahan workspace dari Dashboard sekarang langsung memperbarui Launcher Window secara real-time tanpa perlu restart.
+
+### Bug Fixes
+- **Folder Picker Fix:** Memperbaiki bug pada pemilihan direktori "Drive Path" yang sebelumnya memicu submit form secara tidak sengaja.
+- **Resource Redirects:** Tautan Resource (Repository, Documentation, Issue) kini berhasil terbuka di browser default pengguna menggunakan native shell.
+- **View Log Access:** Memperbaiki tombol "View Log" agar membuka direktori log aplikasi yang benar (`appLogDir`).
+- **Version Alignment:** Memperbarui metadata versi pada seluruh environment codebase ke v0.7.3.
+
+### Kesimpulan (Conclusion)
+Rilis `v0.7.3` berfokus pada resolusi menyeluruh terhadap berbagai kendala teknis dan stabilitas sinkronisasi data antar-window (Dashboard dan Launcher).
+
 ## v0.7.2 (2026-06-17)
 
 ### Fitur (Features)

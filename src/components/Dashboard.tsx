@@ -192,6 +192,22 @@ export default function Dashboard({
 
   const changelogContent = `# Shift Changelog
 
+## v0.7.4 (2026-06-18)
+
+### Bug Fixes
+- **Update Wizard Fix:** Memperbaiki bug kritis di mana Update Wizard tidak muncul setelah update akibat race condition antara \`fallbackVersion\` dan versi runtime Tauri.
+- **Capabilities Fix:** Menambahkan izin \`fs:allow-exists\` dan \`fs:allow-mkdir\` agar penyimpanan data workspace berjalan dengan benar di production.
+- **Tray Icon Behavior:** Memperbaiki logika klik tray icon agar menghormati pengaturan "Minimize to Tray".
+- **Version Sync:** Menyinkronkan \`fallbackVersion\` di \`app.ts\` agar selalu sesuai dengan versi rilis terbaru.
+
+### Improvements
+- **Production Cleanup:** Menghapus debug log berlebihan dari backend (Rust) dan frontend (React) untuk meningkatkan performa startup.
+- **Type Safety:** Memperbaiki interface \`importWorkspaces\` agar sesuai dengan implementasinya.
+- **DataStore Stability:** Memperbaiki dependency array yang stale pada \`useDataStore\` untuk mencegah auto-save loop.
+
+### Kesimpulan (Conclusion)
+Rilis \`v0.7.4\` berfokus pada stabilitas production dan memastikan Update Wizard berfungsi dengan benar.
+
 ## v0.7.3 (2026-06-18)
 
 ### Fitur (Features)
@@ -204,11 +220,10 @@ export default function Dashboard({
 - **Resource Redirects:** Tautan Resource (Repository, Documentation, Issue) kini berhasil terbuka di browser default pengguna menggunakan native shell.
 - **View Log Access:** Memperbaiki tombol "View Log" agar membuka direktori log aplikasi yang benar (\`appLogDir\`).
 - **Fetch Loading State:** Menambahkan indikator visual (spinner delay) yang lebih responsif saat pengguna melakukan refresh manual pada daftar aplikasi terinstal.
-- **Update Check Handling:** Menyempurnakan pesan error apabila aplikasi telah berada di versi terbaru saat menekan tombol Check for Updates.
 - **Version Alignment:** Memperbarui metadata versi pada seluruh environment codebase ke v0.7.3.
 
 ### Kesimpulan (Conclusion)
-Rilis \`v0.7.3\` berfokus pada resolusi menyeluruh terhadap berbagai kendala teknis dan stabilitas sinkronisasi data antar-window (Dashboard dan Launcher), serta memastikan pengalaman pengguna lebih solid saat mengelola Workspace.
+Rilis \`v0.7.3\` berfokus pada resolusi menyeluruh terhadap berbagai kendala teknis dan stabilitas sinkronisasi data antar-window (Dashboard dan Launcher).
 
 ## v0.7.2 (2026-06-17)
 
@@ -238,50 +253,30 @@ Rilis \`v0.7.2\` difokuskan pada peningkatan user experience dan organisasi UI, 
 
   // Fetch apps and system info on mount and listen to open-settings event
   useEffect(() => {
-    console.log('Dashboard mounted!');
-    console.log('typeof window:', typeof window);
-
-    // Coba langsung import @tauri-apps/api/core tanpa cek __TAURI__ terlebih dahulu
     Promise.all([
       import('@tauri-apps/api/core'),
       import('@tauri-apps/api/event'),
     ])
       .then(async ([core, event]) => {
-        console.log('Successfully imported core and event!');
         const { invoke } = core;
         const { listen } = event;
-        console.log('Calling get_installed_apps... NOW!');
-        // Fetch apps directly from Dashboard to test!
         try {
           const installedApps = await invoke('get_installed_apps');
-          console.log('Successfully got get_installed_apps:');
-          console.log('apps:', installedApps);
-          console.log('apps.length:', (installedApps as any[]).length);
-
-          // Now set it to the context!
           setApps(installedApps as InstalledApp[]);
         } catch (e) {
-          console.error('get_installed_apps ERROR:', e);
+          console.error('[Dashboard] get_installed_apps error:', e);
         }
-        console.log('Calling get_system_info...');
-        // Fetch system info
         invoke('get_system_info')
           .then((info) => {
-            console.log('Got system info:', info);
             setSystemInfo(info as RawSystemInfo);
           })
-          .catch((e) => console.error('get_system_info error:', e));
-        // Listen to open-settings event
+          .catch((e) => console.error('[Dashboard] get_system_info error:', e));
         listen('open-settings', () => {
           setActiveTab('settings');
         });
       })
-      .catch((e) => {
-        console.log(
-          'Error importing Tauri modules (probably not in Tauri environment):',
-          e
-        );
-        // No fallback, just set empty state
+      .catch(() => {
+        // Not running inside Tauri (browser dev mode) — skip silently.
       });
 
     const handleSwitchTab = (e: any) => {
@@ -289,22 +284,16 @@ Rilis \`v0.7.2\` difokuskan pada peningkatan user experience dan organisasi UI, 
     };
     window.addEventListener('switch-tab', handleSwitchTab);
     return () => window.removeEventListener('switch-tab', handleSwitchTab);
-  }, [setApps]); // Add setApps as dependency!
+  }, [setApps]);
 
   const handleManualFetchApps = async () => {
-    console.log('handleManualFetchApps clicked!');
     setAppsLoading(true);
     // Add artificial delay so loading state is visible
     await new Promise((resolve) => setTimeout(resolve, 600));
     if (typeof window !== 'undefined' && '__TAURI__' in window) {
       try {
         const { invoke } = await import('@tauri-apps/api/core');
-        console.log('Calling get_installed_apps MANUALLY!');
         const installedApps = await invoke('get_installed_apps');
-        console.log('MANUAL get_installed_apps result:');
-        console.log('apps:', installedApps);
-        console.log('apps.length:', (installedApps as any[]).length);
-        // Save to context!
         setApps(installedApps as InstalledApp[]);
         triggerToast(
           'Refresh Complete',
@@ -312,7 +301,7 @@ Rilis \`v0.7.2\` difokuskan pada peningkatan user experience dan organisasi UI, 
           'success'
         );
       } catch (e) {
-        console.error('MANUAL fetch error:', e);
+        console.error('[Dashboard] Manual fetch error:', e);
         triggerToast(
           'Refresh Failed',
           'Could not refresh installed applications.',

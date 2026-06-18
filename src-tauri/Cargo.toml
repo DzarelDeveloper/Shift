@@ -1,6 +1,6 @@
 [package]
 name = "shift"
-version = "0.7.3"
+version = "0.7.4"
 description = "Restore your workflow in seconds."
 authors = ["Muhamad Dzarel Alghifari"]
 license = "MIT"

@@ -5,6 +5,11 @@ export function useDataStore<T>(
   defaultValue: T,
   options = { autoSave: true, parseRawApp: false }
 ) {
+  // Destructure to get a stable primitive value for the dependency array.
+  // Using `options` directly causes a stale-closure loop because callers
+  // recreate the options object literal on every render.
+  const { autoSave } = options;
+
   const [data, setData] = useState<T>(defaultValue);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -116,7 +121,7 @@ export function useDataStore<T>(
 
   // Auto save on data change if enabled
   useEffect(() => {
-    if (isLoaded && options.autoSave) {
+    if (isLoaded && autoSave) {
       if (typeof window === 'undefined' || !('__TAURI__' in window)) {
         window.localStorage.setItem(filename, JSON.stringify(data));
         return;
@@ -138,7 +143,7 @@ export function useDataStore<T>(
         });
       });
     }
-  }, [data, isLoaded, options.autoSave, filename]);
+  }, [data, isLoaded, autoSave, filename]);
 
   return { data, setData: saveData, isLoaded, error };
 }

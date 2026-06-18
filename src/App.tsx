@@ -40,7 +40,7 @@ interface AppContextType {
   theme: ThemeConfig;
   setTheme: React.Dispatch<React.SetStateAction<ThemeConfig>>;
   exportWorkspaces: () => void;
-  importWorkspaces: (file: File) => Promise<void>;
+  importWorkspaces: () => Promise<void>;
   apps: InstalledApp[];
   setApps: React.Dispatch<React.SetStateAction<InstalledApp[]>>;
   triggerToast: (
@@ -118,16 +118,7 @@ export default function App() {
 
   // Log whenever apps state updates AND send to launcher window via event
   useEffect(() => {
-    console.log('-----------------------------------------------------------');
-    console.log('📊 Apps STATE UPDATE!');
-    console.log('   📊 apps.length:', apps.length);
-    if (apps.length > 0) {
-      console.log('   📊 First 10 apps in state:');
-      apps
-        .slice(0, 10)
-        .forEach((app, i) => console.log(`      #${i + 1}`, app));
-    }
-    console.log('-----------------------------------------------------------');
+    console.log(`[Apps] State updated — total: ${apps.length}`);
 
     // Send updated apps to all windows via Tauri event
     if (isTauri && isMainWindow) {
@@ -147,14 +138,19 @@ export default function App() {
   }, [workspaces, isMainWindow]);
 
   // Version is read once from Tauri via useAppInfo (single source of truth).
-  const { version: currentVersion } = useAppInfo();
+  const { version: currentVersion, isLoading: versionLoading } = useAppInfo();
 
   const [wizardState, setWizardState] = useState<
     'loading' | 'onboarding' | 'update' | 'none'
   >('loading');
 
   useEffect(() => {
-    if (!currentVersion) return; // wait for Tauri to resolve
+    // Wait until the Tauri runtime has resolved the real version.
+    // Without this guard, the effect may run with the fallbackVersion
+    // (e.g. "0.7.4") which equals the savedVersion, causing the wizard
+    // to be skipped even though the app was actually just updated.
+    if (versionLoading) return;
+
     const savedVersion = localStorage.getItem('shift_last_version');
     const hasCompletedOnboarding =
       localStorage.getItem('shift_onboarding_completed') === 'true';
@@ -166,53 +162,20 @@ export default function App() {
     } else {
       setWizardState('none');
     }
-  }, [currentVersion]);
+  }, [currentVersion, versionLoading]);
 
   useEffect(() => {
-    console.log('----------------------------------------');
-    console.log('📋 App.tsx: fetchApps useEffect RUNNING!');
-    console.log('   🔹 windowLabel:', windowLabel);
-    console.log('   🔹 isMainWindow:', windowLabel === 'main');
-    console.log('   🔹 __TAURI__ in window?', '__TAURI__' in window);
-    console.log('----------------------------------------');
-
     async function fetchApps() {
-      console.log('🚀 fetchApps() CALLED!');
-      if (windowLabel !== 'main') {
-        console.log('❌ Not main window, SKIPPING fetch!');
-        return;
-      }
-      console.log('✅ Main window confirmed, proceeding!');
-
+      if (windowLabel !== 'main') return;
       if (typeof window !== 'undefined' && '__TAURI__' in window) {
         try {
-          console.log("📞 Calling Tauri's get_installed_apps()...");
           const { invoke } = await import('@tauri-apps/api/core');
-          const installedAppsRaw = await invoke('get_installed_apps');
-          console.log('✅ Tauri invoke SUCCESS!');
-          console.log('   📦 Raw data type:', typeof installedAppsRaw);
-          console.log('   📦 Raw data:', installedAppsRaw);
-
-          const installedApps = installedAppsRaw as InstalledApp[];
-
-          console.log('🔍 Installed apps type:', typeof installedApps);
-          console.log('🔍 Is Array?', Array.isArray(installedApps));
-          console.log('🔍 Apps length:', installedApps.length);
-
-          if (Array.isArray(installedApps) && installedApps.length > 0) {
-            console.log('📋 First 10 apps:');
-            installedApps.slice(0, 10).forEach((app, i) => {
-              console.log(`   #${i + 1}:`, app);
-            });
-          }
-
-          console.log('💾 Calling setApps with this data!');
-          setApps(installedApps);
+          const installedApps = await invoke('get_installed_apps');
+          setApps(installedApps as InstalledApp[]);
+          console.log(`[Apps] Fetched ${(installedApps as InstalledApp[]).length} installed apps on startup.`);
         } catch (e) {
-          console.error('❌ Failed to fetch installed apps! Error:', e);
+          console.error('[Apps] Failed to fetch installed apps:', e);
         }
-      } else {
-        console.log('❌ Not in Tauri environment, SKIPPING fetch!');
       }
     }
     fetchApps();

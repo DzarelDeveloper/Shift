@@ -1,12 +1,12 @@
 /**
  * src/components/VersionBadge.tsx
  *
- * Reusable badge that displays "Shift v0.5.6".
+ * Reusable badge that displays "Shift v0.7.4".
  * Reads version dynamically from the Tauri runtime via useAppInfo.
  *
  * Usage:
- *   <VersionBadge />                    → "Shift v0.5.6"
- *   <VersionBadge showName={false} />   → "v0.5.6"
+ *   <VersionBadge />                    → "Shift v0.7.4"
+ *   <VersionBadge showName={false} />   → "v0.7.4"
  *   <VersionBadge className="..." />    → custom styling
  */
 

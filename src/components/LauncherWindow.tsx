@@ -8,9 +8,28 @@ export const LauncherWindow: React.FC = () => {
   const [launcherWorkspaces, setLauncherWorkspaces] = useState<Workspace[]>([]);
   const [launcherApps, setLauncherApps] = useState<InstalledApp[]>([]);
 
-  // Listen for apps and workspaces updates from main window
+  // Load initial workspaces from disk and listen for updates
   useEffect(() => {
     if (!isTauri) return;
+
+    // Load initial workspaces from storage
+    import('@tauri-apps/api/path').then(({ appDataDir }) => {
+      import('@tauri-apps/plugin-fs').then(({ readTextFile, exists }) => {
+        appDataDir().then(async (dirPath) => {
+          const filePath = `${dirPath}/workspaces.json`;
+          const fileExists = await exists(filePath);
+          if (fileExists) {
+            try {
+              const content = await readTextFile(filePath);
+              const parsed = JSON.parse(content);
+              setLauncherWorkspaces(parsed);
+            } catch (e) {
+              console.error('[Launcher] Failed to parse workspaces.json:', e);
+            }
+          }
+        });
+      });
+    });
 
     let unlistenApps: (() => void) | null = null;
     let unlistenWorkspaces: (() => void) | null = null;
@@ -59,8 +78,8 @@ export const LauncherWindow: React.FC = () => {
       } else {
         // For workspace, send event to main window to launch
         if (isTauri) {
-          const { emit } = await import('@tauri-apps/api/event');
-          emit('shift://launch-workspace', item.data);
+          const { emitTo } = await import('@tauri-apps/api/event');
+          await emitTo('main', 'shift://launch-workspace', item.data);
         }
       }
     },

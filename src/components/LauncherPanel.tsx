@@ -12,17 +12,14 @@ import {
   Folder,
   CornerDownLeft,
   X,
-  Sparkles,
   Command,
   FileCode2,
   Palette,
-  BarChart3,
-  Shield,
   Settings,
   AppWindow,
   BookOpen,
 } from 'lucide-react';
-import logoUrl from '../assets/logo.png';
+
 import { Workspace, InstalledApp, LauncherItem } from '../types';
 import { useCommandPalette } from '../hooks/useCommandPalette';
 
@@ -135,7 +132,7 @@ export default function LauncherPanel({
                 id='launcher-input-search'
                 ref={inputRef}
                 type='text'
-                placeholder='Search workspace or app (e.g. coding, chrome)'
+                placeholder='Search workspaces... (e.g. coding, design)'
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
@@ -211,15 +208,7 @@ export default function LauncherPanel({
                             : 'color-mix(in srgb, var(--text-color) 70%, transparent)',
                         }}
                       >
-                        {item.type === 'workspace' ? (
-                          getModeIcon(item.data.id)
-                        ) : (
-                          <img
-                            src={logoUrl}
-                            alt='Shift Logo'
-                            className='w-5 h-5 object-cover'
-                          />
-                        )}
+                        {getModeIcon(item.data.id)}
                       </div>
                       <div className='min-w-0 pr-2'>
                         <p className='font-semibold text-xs flex items-center gap-2'>
@@ -230,9 +219,7 @@ export default function LauncherPanel({
                                 : 'var(--text-color)',
                             }}
                           >
-                            {item.type === 'workspace'
-                              ? item.data.name
-                              : item.data.name}
+                            {item.data.name}
                           </span>
                           <span
                             className='text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded font-mono font-medium border'
@@ -243,9 +230,9 @@ export default function LauncherPanel({
                               opacity: 0.6,
                             }}
                           >
-                            {item.type === 'workspace' ? 'Workspace' : 'App'}
+                            Workspace
                           </span>
-                          {item.type === 'workspace' && item.data.shortcut && (
+                          {item.data.shortcut && (
                             <span
                               className='text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded font-mono font-medium border'
                               style={{
@@ -263,15 +250,12 @@ export default function LauncherPanel({
                           className='text-xs mt-0.5 description truncate font-mono tracking-tight'
                           style={{ color: 'var(--text-color)', opacity: 0.6 }}
                         >
-                          {item.type === 'workspace'
-                            ? item.data.description ||
-                              'Deploy this layout automation profile.'
-                            : item.data.path}
+                          {item.data.description ||
+                            'Deploy this layout automation profile.'}
                         </p>
 
                         {/* Meta labels for workspace */}
-                        {item.type === 'workspace' && (
-                          <div className='flex gap-4 items-center mt-1.5 flex-wrap font-mono text-[10px]'>
+                        <div className='flex gap-4 items-center mt-1.5 flex-wrap font-mono text-[10px]'>
                             {item.data.applications.length > 0 && (
                               <span
                                 className='inline-flex items-center gap-1'
@@ -318,7 +302,6 @@ export default function LauncherPanel({
                               </span>
                             )}
                           </div>
-                        )}
                       </div>
                     </div>
 
@@ -343,7 +326,7 @@ export default function LauncherPanel({
                           className='text-[10px] font-mono'
                           style={{ color: 'var(--text-color)', opacity: 0.6 }}
                         >
-                          {item.type === 'workspace' ? 'Launch' : 'Open'}
+                          Launch
                         </span>
                       )}
                     </div>
@@ -360,7 +343,7 @@ export default function LauncherPanel({
                   <p className='text-xs font-semibold mb-3'>
                     {workspaces.length === 0
                       ? 'Welcome to Shift'
-                      : 'No items found'}
+                      : 'No workspaces found'}
                   </p>
                   <div className='flex gap-2 items-center'>
                     <button

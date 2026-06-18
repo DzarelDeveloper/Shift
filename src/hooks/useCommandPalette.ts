@@ -71,40 +71,25 @@ export function useCommandPalette({
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Combine and filter items based on search query with fuzzy search
+  // Filter workspace items based on search query with fuzzy search
   const filteredItems: LauncherItem[] = [
     ...workspaces.map((ws) => ({ type: 'workspace' as const, data: ws })),
-    ...apps.map((app) => ({ type: 'app' as const, data: app })),
   ]
     .filter((item) => {
-      if (item.type === 'workspace') {
-        const ws = item.data;
-        return (
-          fuzzyMatch(ws.name, query) ||
-          fuzzyMatch(ws.description, query) ||
-          (ws.shortcut && fuzzyMatch(ws.shortcut, query))
-        );
-      } else {
-        return fuzzyMatch(item.data.name, query);
-      }
+      const ws = item.data;
+      return (
+        fuzzyMatch(ws.name, query) ||
+        fuzzyMatch(ws.description, query) ||
+        (ws.shortcut && fuzzyMatch(ws.shortcut, query))
+      );
     })
     .sort((a, b) => {
-      let scoreA = 0;
-      let scoreB = 0;
-      if (a.type === 'workspace') {
-        scoreA =
-          getMatchScore(a.data.name, query) +
-          getMatchScore(a.data.description, query);
-      } else {
-        scoreA = getMatchScore(a.data.name, query);
-      }
-      if (b.type === 'workspace') {
-        scoreB =
-          getMatchScore(b.data.name, query) +
-          getMatchScore(b.data.description, query);
-      } else {
-        scoreB = getMatchScore(b.data.name, query);
-      }
+      const scoreA =
+        getMatchScore(a.data.name, query) +
+        getMatchScore(a.data.description, query);
+      const scoreB =
+        getMatchScore(b.data.name, query) +
+        getMatchScore(b.data.description, query);
       return scoreB - scoreA;
     });
 
