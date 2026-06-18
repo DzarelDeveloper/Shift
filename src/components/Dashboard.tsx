@@ -75,6 +75,7 @@ import logoUrl from '../assets/logo.png';
 import { VersionBadge } from './VersionBadge';
 import { AppInfoCard } from './AppInfoCard';
 import { useAppInfo } from '../hooks/useAppInfo';
+import { createExportData } from '../utils/workspaceUtils';
 
 interface DashboardProps {
   workspaces: Workspace[];
@@ -119,7 +120,7 @@ export default function Dashboard({
 }: DashboardProps) {
   const { theme, setTheme, exportWorkspaces, importWorkspaces, apps, setApps } =
     useAppContext();
-  const [appsLoading] = useState(false);
+  const [appsLoading, setAppsLoading] = useState(false);
   const { version: appVersion } = useAppInfo();
 
   // Simple desktop tabs: "home" | "workspaces" | "applications" | "settings" | "about"
@@ -311,6 +312,9 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
 
   const handleManualFetchApps = async () => {
     console.log('handleManualFetchApps clicked!');
+    setAppsLoading(true);
+    // Add artificial delay so loading state is visible
+    await new Promise((resolve) => setTimeout(resolve, 600));
     if (typeof window !== 'undefined' && '__TAURI__' in window) {
       try {
         const { invoke } = await import('@tauri-apps/api/core');
@@ -321,10 +325,29 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
         console.log('apps.length:', (installedApps as any[]).length);
         // Save to context!
         setApps(installedApps as InstalledApp[]);
+        triggerToast(
+          'Refresh Complete',
+          'Installed applications list has been updated.',
+          'success'
+        );
       } catch (e) {
         console.error('MANUAL fetch error:', e);
+        triggerToast(
+          'Refresh Failed',
+          'Could not refresh installed applications.',
+          'info'
+        );
       }
+    } else {
+      // Browser simulation
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      triggerToast(
+        'Simulation Refresh',
+        'Refreshed apps in browser dev mode.',
+        'info'
+      );
     }
+    setAppsLoading(false);
   };
 
   // Selected workspace in detailed workspaces configurations view
@@ -368,8 +391,8 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
     } catch (err) {
       console.error('Failed to check for updates:', err);
       triggerToast(
-        'Update Check Failed',
-        'Could not check for updates right now.',
+        'Up to Date / Error',
+        'You are on the latest version or the server is unreachable.',
         'info'
       );
     } finally {
@@ -379,9 +402,9 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
 
   const handleViewLog = async () => {
     try {
+      const { appLogDir } = await import('@tauri-apps/api/path');
       const { open } = await import('@tauri-apps/plugin-shell');
-      const { appDataDir } = await import('@tauri-apps/api/path');
-      const logDir = await appDataDir();
+      const logDir = await appLogDir();
       await open(logDir);
     } catch (err) {
       console.error('Failed to open log directory:', err);
@@ -1133,17 +1156,7 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                 )}
               </div>
 
-              <button
-                onClick={handleManualFetchApps}
-                className='w-full py-4 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 text-sm font-semibold transition-all group cursor-pointer hover:opacity-90 hover:border-accent'
-                style={{
-                  borderColor: 'var(--border-color)',
-                  color: 'var(--text-color)',
-                }}
-              >
-                <RefreshCw className='w-5 h-5 group-hover:text-accent transition-colors' />
-                <span>MANUALLY FETCH INSTALLED APPS</span>
-              </button>
+
               {/* BOTTOM: Create Workspace Button */}
               <button
                 onClick={handleStartCreate}
@@ -1483,62 +1496,32 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                         className='pt-4 border-t space-y-3'
                         style={{ borderColor: 'var(--border-color)' }}
                       >
-                        <div className='flex items-center justify-between'>
+                        <div className='flex items-center justify-between mb-3'>
                           <span
-                            className='text-[10px] uppercase font-mono font-bold tracking-wider'
+                            className='text-xs font-semibold uppercase tracking-wider'
                             style={{ color: 'var(--text-color)', opacity: 0.6 }}
                           >
-                            Local Script wrappers
+                            Export Workspace
                           </span>
-                          <span
-                            className='text-[10px] font-mono uppercase px-2 py-0.5 rounded border'
-                            style={{
-                              backgroundColor: 'var(--card-bg)',
-                              borderColor: 'var(--border-color)',
-                              color: 'var(--text-color)',
-                              opacity: 0.8,
-                            }}
-                          >
-                            {currentPlatform}
-                          </span>
-                        </div>
-
-                        <div
-                          className='rounded-lg p-3 font-mono text-[10px] max-h-32 overflow-y-auto leading-relaxed border'
-                          style={{
-                            backgroundColor: 'var(--card-bg)',
-                            borderColor: 'var(--border-color)',
-                            color: 'var(--text-color)',
-                            opacity: 0.9,
-                          }}
-                        >
-                          <pre className='whitespace-pre'>
-                            {currentPlatform === 'windows'
-                              ? generateWindowsPowershell(exportWsObj)
-                              : currentPlatform === 'macos'
-                                ? generateMacosScript(exportWsObj)
-                                : generateLinuxScript(exportWsObj)}
-                          </pre>
                         </div>
 
                         <div className='flex gap-2'>
                           <button
                             onClick={() => {
-                              const ext =
-                                currentPlatform === 'windows' ? 'ps1' : 'sh';
-                              const codeStr =
-                                currentPlatform === 'windows'
-                                  ? generateWindowsPowershell(exportWsObj)
-                                  : currentPlatform === 'macos'
-                                    ? generateMacosScript(exportWsObj)
-                                    : generateLinuxScript(exportWsObj);
+                              const jsonStr = createExportData([exportWsObj], {
+                                launchAtStartup,
+                                minimizeToTray,
+                                shortcutKey,
+                                dashboardShortcutKey,
+                                autoBypassPreview,
+                              });
                               downloadScript(
-                                codeStr,
-                                `${exportWsObj.name.toLowerCase().replace(/\s+/g, '_')}.${ext}`
+                                jsonStr,
+                                `${exportWsObj.name.toLowerCase().replace(/\s+/g, '_')}.shift`
                               );
                               triggerToast(
-                                'Script Downloaded',
-                                'Workspace script saved to your downloads folder.',
+                                'Workspace Exported',
+                                'Workspace configuration saved as .shift file.',
                                 'success'
                               );
                             }}
@@ -1551,37 +1534,7 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                             }}
                           >
                             <Download className='w-3.5 h-3.5' />
-                            <span>Download Script</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              const codeStr =
-                                currentPlatform === 'windows'
-                                  ? generateWindowsPowershell(exportWsObj)
-                                  : currentPlatform === 'macos'
-                                    ? generateMacosScript(exportWsObj)
-                                    : generateLinuxScript(exportWsObj);
-                              handleCopyScriptText(
-                                codeStr,
-                                'copy-script-action'
-                              );
-                            }}
-                            className='py-1.5 px-4 rounded text-xs flex items-center justify-center gap-1 hover:opacity-90'
-                            style={{
-                              backgroundColor: 'var(--card-bg)',
-                              borderColor: 'var(--border-color)',
-                              borderWidth: '1px',
-                              color: 'var(--text-color)',
-                            }}
-                          >
-                            {copiedId === 'copy-script-action' ? (
-                              <span style={{ color: 'var(--accent-color)' }}>
-                                Copied!
-                              </span>
-                            ) : (
-                              <span>Copy Source</span>
-                            )}
+                            <span>Export Workspace (.shift)</span>
                           </button>
                         </div>
                       </div>
@@ -1700,13 +1653,12 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                   </span>
                   <button
                     type='button'
-                    onClick={() => {
-                      console.log(
-                        '[Apps] Loaded from context — count:',
-                        apps.length
-                      );
+                    onClick={async () => {
+                      await new Promise((resolve) => setTimeout(resolve, 600));
+                      handleManualFetchApps();
                     }}
-                    className='px-3 py-1.5 rounded text-xs flex items-center gap-1 transition-all cursor-pointer hover:opacity-90'
+                    disabled={appsLoading}
+                    className='px-3 py-1.5 rounded text-xs flex items-center gap-1 transition-all cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed'
                     style={{
                       backgroundColor: 'var(--card-bg)',
                       borderColor: 'var(--border-color)',
@@ -3290,7 +3242,16 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                       </span>
                     </div>
                     <button
-                      onClick={handleViewLog}
+                      onClick={async () => {
+                        try {
+                          const { open } = await import('@tauri-apps/plugin-shell');
+                          const { appLogDir } = await import('@tauri-apps/api/path');
+                          const logDir = await appLogDir();
+                          await open(logDir);
+                        } catch (err) {
+                          console.error('Failed to open logs:', err);
+                        }
+                      }}
                       className='p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-semibold transition-all hover:opacity-90'
                       style={{
                         backgroundColor: 'var(--bg-color)',
@@ -3813,17 +3774,35 @@ Rilis v0.7.0 difokuskan pada peningkatan kualitas interaksi pengguna (UX), pengh
                           type="button"
                           className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
                           onClick={async () => {
+                            const isTauriEnv = typeof window !== 'undefined' && '__TAURI__' in window;
+                            if (!isTauriEnv) {
+                              triggerToast(
+                                'Not Available',
+                                'Folder picker is only available in the desktop app.',
+                                'info'
+                              );
+                              return;
+                            }
                             try {
                               const { open } = await import('@tauri-apps/plugin-dialog');
                               const selected = await open({
                                 directory: true,
                                 multiple: false,
                               });
-                              if (selected && typeof selected === 'string') {
-                                setNewFolderPath(selected);
+                              if (selected) {
+                                // Handle both string and object return types
+                                const path = typeof selected === 'string'
+                                  ? selected
+                                  : (selected as any).path || String(selected);
+                                if (path) setNewFolderPath(path);
                               }
                             } catch (err) {
                               console.error('Failed to open folder dialog:', err);
+                              triggerToast(
+                                'Browse Failed',
+                                'Could not open the folder picker.',
+                                'info'
+                              );
                             }
                           }}
                         >

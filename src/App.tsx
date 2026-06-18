@@ -129,19 +129,19 @@ export default function App() {
     }
     console.log('-----------------------------------------------------------');
 
-    // Send updated apps to launcher window via Tauri event
+    // Send updated apps to all windows via Tauri event
     if (isTauri && isMainWindow) {
       import('@tauri-apps/api/event').then(({ emit }) => {
-        emit('shift://apps-updated', apps);
+        emit('shift://apps-updated', apps).catch(console.error);
       });
     }
   }, [apps, isMainWindow]);
 
-  // Send updated workspaces to launcher window whenever they change
+  // Send updated workspaces to all windows whenever they change
   useEffect(() => {
     if (isTauri && isMainWindow) {
       import('@tauri-apps/api/event').then(({ emit }) => {
-        emit('shift://workspaces-updated', workspaces);
+        emit('shift://workspaces-updated', workspaces).catch(console.error);
       });
     }
   }, [workspaces, isMainWindow]);
@@ -386,20 +386,40 @@ export default function App() {
 
       const data = parseImportData(fileContent);
 
-      // Ask user whether to replace or merge workspaces
-      const shouldReplace = window.confirm(
-        'Replace existing workspaces? (Cancel to merge)'
-      );
-
-      if (shouldReplace) {
-        setWorkspaces(data.workspaces);
-      } else {
-        const existingIds = new Set(workspaces.map((w) => w.id));
-        const newWorkspaces = data.workspaces.filter(
-          (w) => !existingIds.has(w.id)
+      // Ask user to confirm import using Tauri dialog if in Tauri env
+      let proceed = false;
+      if (isTauri) {
+        const { ask } = await import('@tauri-apps/plugin-dialog');
+        proceed = await ask(
+          'Do you want to import and merge these workspaces into your current list?',
+          { title: 'Import Workspaces', kind: 'info' }
         );
-        setWorkspaces([...workspaces, ...newWorkspaces]);
+      } else {
+        proceed = window.confirm(
+          'Do you want to import and merge these workspaces into your current list?'
+        );
       }
+
+      if (!proceed) return;
+
+      setWorkspaces((prevWorkspaces) => {
+        const existingIds = new Set(prevWorkspaces.map((w) => w.id));
+        const merged = [...prevWorkspaces];
+        for (const w of data.workspaces) {
+          if (existingIds.has(w.id)) {
+            // ID collision! Generate a new unique ID and append name
+            const newId = `ws-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            merged.push({
+              ...w,
+              id: newId,
+              name: `${w.name} (Imported)`,
+            });
+          } else {
+            merged.push(w);
+          }
+        }
+        return merged;
+      });
 
       // Apply preferences if available
       if (data.preferences) {
