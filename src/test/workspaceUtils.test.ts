@@ -24,6 +24,7 @@ describe('workspaceUtils', () => {
     launchAtStartup: true,
     minimizeToTray: false,
     shortcutKey: 'Ctrl+K',
+    dashboardShortcutKey: 'CommandOrControl+Shift+D',
     autoBypassPreview: true,
   };
 

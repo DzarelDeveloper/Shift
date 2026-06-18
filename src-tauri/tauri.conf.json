@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0",
   "productName": "Shift",
-  "version": "0.7.4",
+  "version": "0.7.6",
   "identifier": "com.dzarel.shift",
   "plugins": {
     "shell": {
@@ -12,13 +12,7 @@
       "endpoints": [
         "https://github.com/DzarelDeveloper/Shift/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEExMzY5MDAyQTJCMTNFMzcKUldRM1ByR2lBcEEyb1Z2L3o0M1JjUXlKUEF6dUFIVlY5ckZpUkNIbmd5cTJjN09aemg5d3RSWUEK",
-      "windows": {
-        "installMode": "nsis"
-      },
-      "macOS": {
-        "installMode": "bundle"
-      }
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEExMzY5MDAyQTJCMTNFMzcKUldRM1ByR2lBcEEyb1Z2L3o0M1JjUXlKUEF6dUFIVlY5ckZpUkNIbmd5cTJjN09aemg5d3RSWUEK"
     }
   },
   "build": {
