@@ -230,9 +230,9 @@ export default function LauncherPanel({
                               opacity: 0.6,
                             }}
                           >
-                            Workspace
+                            {item.type === 'workspace' ? 'Workspace' : 'App'}
                           </span>
-                          {item.data.shortcut && (
+                          {item.type === 'workspace' && item.data.shortcut && (
                             <span
                               className='text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded font-mono font-medium border'
                               style={{
@@ -250,58 +250,61 @@ export default function LauncherPanel({
                           className='text-xs mt-0.5 description truncate font-mono tracking-tight'
                           style={{ color: 'var(--text-color)', opacity: 0.6 }}
                         >
-                          {item.data.description ||
-                            'Deploy this layout automation profile.'}
+                          {item.type === 'workspace'
+                            ? (item.data.description || 'Deploy this layout automation profile.')
+                            : (item.data.path || 'Launch this application.')}
                         </p>
 
                         {/* Meta labels for workspace */}
-                        <div className='flex gap-4 items-center mt-1.5 flex-wrap font-mono text-[10px]'>
-                            {item.data.applications.length > 0 && (
-                              <span
-                                className='inline-flex items-center gap-1'
-                                style={{
-                                  color: 'var(--text-color)',
-                                  opacity: 0.6,
-                                }}
-                              >
-                                <Terminal className='w-3 h-3 text-emerald-500' />
-                                <span>
-                                  {item.data.applications.length} App
-                                  {item.data.applications.length > 1 ? 's' : ''}
+                        {item.type === 'workspace' && (
+                          <div className='flex gap-4 items-center mt-1.5 flex-wrap font-mono text-[10px]'>
+                              {item.data.applications.length > 0 && (
+                                <span
+                                  className='inline-flex items-center gap-1'
+                                  style={{
+                                    color: 'var(--text-color)',
+                                    opacity: 0.6,
+                                  }}
+                                >
+                                  <Terminal className='w-3 h-3 text-emerald-500' />
+                                  <span>
+                                    {item.data.applications.length} App
+                                    {item.data.applications.length > 1 ? 's' : ''}
+                                  </span>
                                 </span>
-                              </span>
-                            )}
-                            {item.data.websites.length > 0 && (
-                              <span
-                                className='inline-flex items-center gap-1'
-                                style={{
-                                  color: 'var(--text-color)',
-                                  opacity: 0.6,
-                                }}
-                              >
-                                <Globe className='w-3 h-3 text-cyan-500' />
-                                <span>
-                                  {item.data.websites.length} Link
-                                  {item.data.websites.length > 1 ? 's' : ''}
+                              )}
+                              {item.data.websites.length > 0 && (
+                                <span
+                                  className='inline-flex items-center gap-1'
+                                  style={{
+                                    color: 'var(--text-color)',
+                                    opacity: 0.6,
+                                  }}
+                                >
+                                  <Globe className='w-3 h-3 text-cyan-500' />
+                                  <span>
+                                    {item.data.websites.length} Link
+                                    {item.data.websites.length > 1 ? 's' : ''}
+                                  </span>
                                 </span>
-                              </span>
-                            )}
-                            {item.data.folders.length > 0 && (
-                              <span
-                                className='inline-flex items-center gap-1'
-                                style={{
-                                  color: 'var(--text-color)',
-                                  opacity: 0.6,
-                                }}
-                              >
-                                <Folder className='w-3 h-3 text-orange-500' />
-                                <span>
-                                  {item.data.folders.length} Folder
-                                  {item.data.folders.length > 1 ? 's' : ''}
+                              )}
+                              {item.data.folders.length > 0 && (
+                                <span
+                                  className='inline-flex items-center gap-1'
+                                  style={{
+                                    color: 'var(--text-color)',
+                                    opacity: 0.6,
+                                  }}
+                                >
+                                  <Folder className='w-3 h-3 text-orange-500' />
+                                  <span>
+                                    {item.data.folders.length} Folder
+                                    {item.data.folders.length > 1 ? 's' : ''}
+                                  </span>
                                 </span>
-                              </span>
-                            )}
-                          </div>
+                              )}
+                            </div>
+                        )}
                       </div>
                     </div>
 
