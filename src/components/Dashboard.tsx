@@ -192,6 +192,11 @@ export default function Dashboard({
 
   const changelogContent = `# Shift Changelog
 
+## v0.7.5 (2026-06-18)
+
+### Hotfix
+- **AppImage Execution Fix:** Memperbaiki bug di Linux di mana peluncuran aplikasi via AppImage gagal karena konflik \`LD_LIBRARY_PATH\`. Proses aplikasi kini diluncurkan secara bersih (detached) dari environment Tauri.
+
 ## v0.7.4 (2026-06-18)
 
 ### Bug Fixes
