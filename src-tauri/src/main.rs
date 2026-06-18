@@ -710,10 +710,7 @@ fn main() {
                 })
                 .on_tray_icon_event(|tray, _event| {
                     let app = tray.app_handle();
-                    let minimize_to_tray = {
-                        let state = app.state::<AppState>();
-                        *state.minimize_to_tray.lock().unwrap()
-                    };
+                    let minimize_to_tray = *app.state::<AppState>().minimize_to_tray.lock().unwrap();
                     if let Some(window) = app.get_webview_window("main") {
                         if let Ok(is_visible) = window.is_visible() {
                             if is_visible {
