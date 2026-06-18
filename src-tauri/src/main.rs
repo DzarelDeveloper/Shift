@@ -355,6 +355,9 @@ fn launch_application(path: String) -> Result<(), String> {
     {
         std::process::Command::new("cmd")
             .args(["/C", "start", "", &path])
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
             .spawn()
             .map_err(|e| format!("Failed to launch app: {}", e))?;
     }
@@ -362,6 +365,9 @@ fn launch_application(path: String) -> Result<(), String> {
     {
         std::process::Command::new("open")
             .arg(&path)
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
             .spawn()
             .map_err(|e| format!("Failed to launch app: {}", e))?;
     }
@@ -371,8 +377,19 @@ fn launch_application(path: String) -> Result<(), String> {
         if let Some(mut parts) = shlex::split(&path) {
             if !parts.is_empty() {
                 let cmd = parts.remove(0);
-                std::process::Command::new(cmd)
-                    .args(parts)
+                let mut command = std::process::Command::new(cmd);
+                command.args(parts);
+                
+                // If running inside an AppImage, it sets LD_LIBRARY_PATH which can break system apps.
+                // We must remove it so the child process uses the system's libraries.
+                if std::env::var("APPIMAGE").is_ok() {
+                    command.env_remove("LD_LIBRARY_PATH");
+                }
+                
+                command
+                    .stdin(std::process::Stdio::null())
+                    .stdout(std::process::Stdio::null())
+                    .stderr(std::process::Stdio::null())
                     .spawn()
                     .map_err(|e| format!("Failed to launch app: {}", e))?;
             }
