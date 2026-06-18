@@ -139,15 +139,19 @@ Download the latest pre-built binary directly from the **[Releases Page](https:/
 
 ### Local Setup
 
+**1. Clone the repository**
 ```bash
-# Clone the repository
 git clone https://github.com/DzarelDeveloper/Shift.git
 cd Shift
+```
 
-# Install frontend dependencies
+**2. Install frontend dependencies**
+```bash
 npm install
+```
 
-# Start in dev mode (hot-reload for both frontend & backend)
+**3. Start in dev mode** *(hot-reload for both frontend & backend)*
+```bash
 npm run tauri:dev
 ```
 
